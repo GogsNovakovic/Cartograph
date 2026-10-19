@@ -1,26 +1,48 @@
+/* Clerk's components sit in their own layer between Tailwind's base and
+   utilities, so utilities can still override them. */
+@layer theme, base, clerk, components, utilities;
 @import "tailwindcss";
 
+/* Theme. With no data-theme the root follows the OS; data-theme="light" or
+   "dark" pins color-scheme, and every token below resolves through
+   light-dark(), so a forced choice beats the system without a second copy of
+   the palette. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light dark;
+
+  --surface: light-dark(#fcfcfc, #0f1012);
+  --raised: light-dark(#f3f3f4, #17181b);
+  --border: light-dark(#e2e2e5, #27282c);
+  --text: light-dark(#1a1b1e, #e3e4e7);
+  --muted: light-dark(#6c6e75, #8a8c93);
+  --accent: light-dark(#2459d6, #5b8ff5);
+  --accent-text: light-dark(#ffffff, #0f1012);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
 }
