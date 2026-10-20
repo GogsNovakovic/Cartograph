@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "supabase db push --include-seed",
+    "db:types": "supabase gen types typescript --linked --schema public > lib/database.types.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.17",
@@ -22,6 +24,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
+    "supabase": "^2.121.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
