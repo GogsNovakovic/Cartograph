@@ -8,14 +8,16 @@
     "start": "next start",
     "lint": "eslint",
     "db:push": "supabase db push --include-seed",
-    "db:types": "supabase gen types typescript --linked --schema public > lib/database.types.ts"
+    "db:types": "supabase gen types typescript --linked --schema public > lib/database.types.ts",
+    "parse": "node parser/cli.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.17",
     "@supabase/supabase-js": "^2.118.0",
     "next": "16.4.2",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "ts-morph": "^28.0.0"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
