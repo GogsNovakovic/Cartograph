@@ -46,8 +46,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             // CSS variables, so Clerk follows the theme control with no
             // separate dark theme to keep in sync.
             variables: {
-              colorPrimary: "var(--accent)",
-              colorPrimaryForeground: "var(--accent-text)",
+              colorPrimary: "var(--clerk-primary)",
+              colorPrimaryForeground: "var(--clerk-primary-text)",
               colorBackground: "var(--surface)",
               colorForeground: "var(--text)",
               colorMutedForeground: "var(--muted)",

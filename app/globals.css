@@ -4,27 +4,55 @@
 @import "tailwindcss";
 
 /* Theme. With no data-theme the root follows the OS; data-theme="light" or
-   "dark" pins color-scheme, and every token below resolves through
-   light-dark(), so a forced choice beats the system without a second copy of
-   the palette. */
+   "dark" pins it, and a forced choice beats the system.
+   Every token is a plain colour, not light-dark(): Clerk derives button and
+   hover shades by mixing these values, and a light-dark() inside that mix
+   resolves to nothing, which left its primary buttons without a background.
+   That's why the dark palette is written out twice below. */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
-  --surface: light-dark(#fcfcfc, #0f1012);
-  --raised: light-dark(#f3f3f4, #17181b);
-  --border: light-dark(#e2e2e5, #27282c);
-  --text: light-dark(#1a1b1e, #e3e4e7);
-  --muted: light-dark(#6c6e75, #8a8c93);
-  --accent: light-dark(#2459d6, #5b8ff5);
-  --accent-text: light-dark(#ffffff, #0f1012);
+  --surface: #fcfcfc;
+  --raised: #f3f3f4;
+  --border: #e2e2e5;
+  --text: #1a1b1e;
+  --muted: #6c6e75;
+  --accent: #2459d6;
+  --accent-text: #ffffff;
+  /* Clerk's primary buttons: neutral rather than accent, as in Clerk's own
+     default look. */
+  --clerk-primary: #2f3037;
+  --clerk-primary-text: #ffffff;
 }
 
-:root[data-theme="light"] {
-  color-scheme: light;
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --surface: #0f1012;
+    --raised: #17181b;
+    --border: #27282c;
+    --text: #e3e4e7;
+    --muted: #8a8c93;
+    --accent: #5b8ff5;
+    --accent-text: #0f1012;
+    --clerk-primary: #2a2b30;
+    --clerk-primary-text: #ffffff;
+  }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
+
+  --surface: #0f1012;
+  --raised: #17181b;
+  --border: #27282c;
+  --text: #e3e4e7;
+  --muted: #8a8c93;
+  --accent: #5b8ff5;
+  --accent-text: #0f1012;
+  --clerk-primary: #2a2b30;
+  --clerk-primary-text: #ffffff;
 }
 
 @theme inline {
