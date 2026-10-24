@@ -25,6 +25,7 @@ export type RowData = {
 
 export type PanelData = Counts & {
   group: number;
+  selected: boolean;
   dimmed: boolean;
   rows: RowData[];
   hidden: number;
@@ -58,7 +59,10 @@ export function FolderBox({ data }: NodeProps<FolderNode>) {
 export function PanelBox({ data }: NodeProps<PanelNode>) {
   return (
     <div
-      className="flex h-full w-full flex-col overflow-hidden rounded-[3px] border border-muted bg-surface"
+      className={
+        "flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-[3px] border bg-surface " +
+        (data.selected ? "border-accent outline outline-accent" : "border-muted")
+      }
       style={{ opacity: data.dimmed ? DIMMED : 1 }}
     >
       {/* Clicking the header closes the panel; the canvas reads this marker. */}

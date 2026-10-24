@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   MarkerType,
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
+  useStore,
   useStoreApi,
   type Edge,
   type NodeMouseHandler,
@@ -20,6 +21,11 @@ type MapNode = FolderNode | PanelNode;
 // the open set, so the refit always reads the state after the change.
 type OpenState = { groups: ReadonlySet<number>; opened: number | null };
 
+// What's selected: one file, or a whole folder. Clicking a folded node opens
+// it and selects the folder in the same click; a row inside narrows it to
+// that file.
+type Selection = { kind: "file"; file: number } | { kind: "folder"; group: number } | null;
+
 export function MapCanvas({ model }: { model: MapModel }) {
   return (
     <ReactFlowProvider>
@@ -30,7 +36,7 @@ export function MapCanvas({ model }: { model: MapModel }) {
 
 function Canvas({ model }: { model: MapModel }) {
   const [open, setOpen] = useState<OpenState>({ groups: new Set(), opened: null });
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<Selection>(null);
   const view = useMemo(() => buildView(model, open.groups), [model, open.groups]);
   const highlight = useMemo(() => highlightOf(model, view, selected), [model, view, selected]);
   const nodes = useMemo(() => toNodes(model, view, selected, highlight), [model, view, selected, highlight]);
@@ -38,6 +44,18 @@ function Canvas({ model }: { model: MapModel }) {
 
   const { fitView, getViewport } = useReactFlow();
   const store = useStoreApi();
+
+  // The first fit waits for the canvas to have a size. Fitting on mount can
+  // run while the container still measures 0 x 0, which places the whole map
+  // off screen, and nothing would fit it again afterwards.
+  const width = useStore((state) => state.width);
+  const height = useStore((state) => state.height);
+  const fitted = useRef(false);
+  useEffect(() => {
+    if (fitted.current || width === 0 || height === 0) return;
+    fitted.current = true;
+    void fitView({ padding: 0.06, maxZoom: 1.25 });
+  }, [width, height, fitView]);
 
   // Refit only zooms out. Fitting to the panel alone would zoom into it and
   // lose the rest of the map, so the current zoom is the ceiling, and if the
@@ -60,24 +78,28 @@ function Canvas({ model }: { model: MapModel }) {
     const group = node.data.group;
     if (node.type === "folder") {
       setOpen((current) => ({ groups: new Set(current.groups).add(group), opened: group }));
+      setSelected({ kind: "folder", group });
       return;
     }
     if (!(event.target instanceof Element)) return;
-    const row = event.target.closest("[data-file]");
-    if (row) {
-      const file = Number(row.getAttribute("data-file"));
-      setSelected((current) => (current === file ? null : file));
-      return;
-    }
     if (event.target.closest("[data-panel-header]")) {
       setOpen((current) => {
         const groups = new Set(current.groups);
         groups.delete(group);
         return { groups, opened: null };
       });
-      // A selected row in a closed panel no longer exists on screen.
-      if (selected !== null && model.files[selected].group === group) setSelected(null);
+      // A selection inside a closed panel no longer exists on screen.
+      if (selected && groupOf(model, selected) === group) setSelected(null);
+      return;
     }
+    const row = event.target.closest("[data-file]");
+    if (row) {
+      const file = Number(row.getAttribute("data-file"));
+      setSelected((current) => (current?.kind === "file" && current.file === file ? null : { kind: "file", file }));
+      return;
+    }
+    // Anywhere else on a panel — its "more" row, its edges — is the folder.
+    setSelected({ kind: "folder", group });
   };
 
   // Absolutely placed so the canvas has a definite size whatever the flex
@@ -91,12 +113,10 @@ function Canvas({ model }: { model: MapModel }) {
         onNodeClick={onNodeClick}
         onPaneClick={() => setSelected(null)}
         // The picture is the layout's, so nothing is dragged, connected or
-        // selected through React Flow; selection is ours, per file.
+        // selected through React Flow; selection is ours.
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={false}
-        fitView
-        fitViewOptions={{ padding: 0.06, maxZoom: 1.25 }}
         minZoom={0.15}
         maxZoom={2.5}
       />
@@ -111,17 +131,26 @@ type Highlight = {
   outgoing: ReadonlySet<string>;
 } | null;
 
-function highlightOf(model: MapModel, view: View, selected: number | null): Highlight {
+function groupOf(model: MapModel, selection: NonNullable<Selection>): number {
+  return selection.kind === "folder" ? selection.group : model.files[selection.file].group;
+}
+
+function highlightOf(model: MapModel, view: View, selected: Selection): Highlight {
   if (selected === null) return null;
-  const own = slotKey({ node: model.groups[model.files[selected].group].directory, slot: selected });
+  const directory = model.groups[groupOf(model, selected)].directory;
+  // A file owns the one slot its row is; a folder owns every slot on its box.
+  const owns =
+    selected.kind === "folder"
+      ? (slot: Slot) => slot.node === directory
+      : (slot: Slot) => slot.node === directory && slot.slot === selected.file;
   const lit = new Set<string>();
   const incoming = new Set<string>();
   const outgoing = new Set<string>();
   for (const edge of view.edges) {
-    if (slotKey(edge.source) === own) {
+    if (owns(edge.source)) {
       outgoing.add(edge.id);
       lit.add(slotKey(edge.target));
-    } else if (slotKey(edge.target) === own) {
+    } else if (owns(edge.target)) {
       incoming.add(edge.id);
       lit.add(slotKey(edge.source));
     }
@@ -129,7 +158,9 @@ function highlightOf(model: MapModel, view: View, selected: number | null): High
   return { lit, incoming, outgoing };
 }
 
-function toNodes(model: MapModel, view: View, selected: number | null, highlight: Highlight): MapNode[] {
+function toNodes(model: MapModel, view: View, selected: Selection, highlight: Highlight): MapNode[] {
+  const selectedFile = selected?.kind === "file" ? selected.file : null;
+  const selectedFolder = selected?.kind === "folder" ? selected.group : null;
   return view.boxes.map((box): MapNode => {
     const group = model.groups[box.group];
     const counts = {
@@ -146,21 +177,30 @@ function toNodes(model: MapModel, view: View, selected: number | null, highlight
     if (box.kind === "folder") {
       return { ...placed, type: "folder", data: { ...counts, dimmed: highlight !== null && !isLit("node") } };
     }
+    // A selected folder keeps all of its own rows bright.
+    const isSelected = box.group === selectedFolder;
     const rows: RowData[] = box.rows.map((file) => ({
       file,
       name: model.files[file].name,
       path: model.files[file].path,
       fanIn: model.files[file].fanIn,
       state:
-        file === selected ? "selected" : highlight === null ? "plain" : isLit(file) ? "lit" : "dimmed",
+        file === selectedFile
+          ? "selected"
+          : highlight === null || isSelected
+            ? "plain"
+            : isLit(file)
+              ? "lit"
+              : "dimmed",
     }));
-    const moreLit = isLit("more");
-    const touched = rows.some((row) => row.state === "selected" || row.state === "lit") || moreLit;
+    const moreLit = isSelected || isLit("more");
+    const touched = isSelected || moreLit || rows.some((row) => row.state === "selected" || row.state === "lit");
     return {
       ...placed,
       type: "panel",
       data: {
         ...counts,
+        selected: isSelected,
         dimmed: highlight !== null && !touched,
         rows,
         hidden: box.hidden,
