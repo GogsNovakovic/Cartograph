@@ -2,6 +2,8 @@
    utilities, so utilities can still override them. */
 @layer theme, base, clerk, components, utilities;
 @import "tailwindcss";
+/* Structural styles only; every colour on the map comes from the tokens below. */
+@import "@xyflow/react/dist/base.css" layer(components);
 
 /* Theme. With no data-theme the root follows the OS; data-theme="light" or
    "dark" pins it, and a forced choice beats the system.
@@ -19,6 +21,10 @@
   --muted: #6c6e75;
   --accent: #2459d6;
   --accent-text: #ffffff;
+  /* Direction, the other thing colour is allowed to mean: what flows into
+     the selection, and what flows out of it. */
+  --incoming: #1e8a4a;
+  --outgoing: #b26b00;
   /* Clerk's primary buttons: neutral rather than accent, as in Clerk's own
      default look. */
   --clerk-primary: #2f3037;
@@ -36,6 +42,8 @@
     --muted: #8a8c93;
     --accent: #5b8ff5;
     --accent-text: #0f1012;
+    --incoming: #3dbb73;
+    --outgoing: #e4a23a;
     --clerk-primary: #2a2b30;
     --clerk-primary-text: #ffffff;
   }
@@ -51,6 +59,8 @@
   --muted: #8a8c93;
   --accent: #5b8ff5;
   --accent-text: #0f1012;
+  --incoming: #3dbb73;
+  --outgoing: #e4a23a;
   --clerk-primary: #2a2b30;
   --clerk-primary-text: #ffffff;
 }
@@ -63,6 +73,8 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-text: var(--accent-text);
+  --color-incoming: var(--incoming);
+  --color-outgoing: var(--outgoing);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -73,4 +85,13 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.45;
+}
+
+.react-flow__attribution {
+  background: transparent;
+  font-size: 10px;
+}
+
+.react-flow__attribution a {
+  color: var(--muted);
 }
