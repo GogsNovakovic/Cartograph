@@ -16,6 +16,9 @@ export function AnalysisView({ model, insights }: { model: MapModel; insights: I
   const [open, setOpen] = useState<OpenState>({ groups: new Set(), opened: null });
   const [selected, setSelected] = useState<Selection>(null);
   const [category, setCategory] = useState<string | null>(null);
+  // What the pointer is over, on the map or in the pane; each lights it in
+  // the other. Kept apart from the selection so hovering never moves it.
+  const [hovered, setHovered] = useState<Selection>(null);
   const graph = useMemo(() => adjacency(model.files.length, model.links), [model]);
   const typeOnly = useMemo(
     () => new Set(model.links.filter((_, i) => model.typeOnly[i]).map(([source, target]) => `${source}>${target}`)),
@@ -28,7 +31,13 @@ export function AnalysisView({ model, insights }: { model: MapModel; insights: I
     const group = model.files[file].group;
     setOpen((current) => ({ groups: new Set(current.groups).add(group), opened: group }));
     setSelected({ kind: "file", file });
+    // The row under the pointer is about to be replaced, and won't report
+    // that the pointer left it.
+    setHovered(null);
   };
+
+  // The map reports every pointer move; only a change re-renders.
+  const hover = (next: Selection) => setHovered((current) => (sameTarget(current, next) ? current : next));
 
   return (
     <Workspace
@@ -50,9 +59,27 @@ export function AnalysisView({ model, insights }: { model: MapModel; insights: I
           selected={selected}
           setSelected={setSelected}
           category={category}
+          hovered={hovered}
+          onHover={hover}
         />
       }
-      detail={<DetailPane model={model} graph={graph} typeOnly={typeOnly} selected={selected} onSelect={selectFile} />}
+      detail={
+        <DetailPane
+          model={model}
+          graph={graph}
+          typeOnly={typeOnly}
+          selected={selected}
+          onSelect={selectFile}
+          hovered={hovered}
+          onHover={hover}
+        />
+      }
     />
   );
+}
+
+function sameTarget(a: Selection, b: Selection): boolean {
+  if (a === null || b === null) return a === b;
+  if (a.kind === "file") return b.kind === "file" && a.file === b.file;
+  return b.kind === "folder" && a.group === b.group;
 }

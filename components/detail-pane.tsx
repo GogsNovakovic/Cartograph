@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { KindSwatch } from "@/components/map/nodes";
 import { PathText } from "@/components/path-text";
 import type { Selection } from "@/components/map/canvas";
 import { DEFAULT_DEPTH, walk, type Adjacency, type Direction } from "@/lib/map/graph";
 import type { MapModel } from "@/lib/map/model";
+import { summarize, SUMMARY_ROWS } from "@/lib/map/summary";
+
+type Tab = "structure" | "explanation";
 
 type Props = {
   model: MapModel;
@@ -14,39 +17,165 @@ type Props = {
   typeOnly: ReadonlySet<string>;
   selected: Selection;
   onSelect: (file: number) => void;
+  // What the pointer is over, on the map or in this pane. Same shape as a
+  // selection: a file, or a folded folder.
+  hovered: Selection;
+  onHover: (hovered: Selection) => void;
 };
 
-export function DetailPane({ model, graph, typeOnly, selected, onSelect }: Props) {
-  if (selected === null) {
-    return <p className="px-3 py-2 text-[11px] text-muted">Select a file to see what depends on it.</p>;
-  }
-  if (selected.kind === "folder") {
-    const group = model.groups[selected.group];
-    return (
-      <>
-        <Title label="Folder" path={group.directory === "." ? "./" : group.directory + "/"} />
-        <Facts>
-          <Fact term="Files">{group.files.length} files</Fact>
-          <Fact term="Depends on">
-            <span className="text-outgoing">{group.fanOut} files outside</span>
-          </Fact>
-          <Fact term="Depended on by">
-            <span className="text-incoming">{group.fanIn} files outside</span>
-          </Fact>
-        </Facts>
-      </>
-    );
-  }
-  // Keyed by file so a new selection starts with no walk shown.
+// Everything here is computed from the model already in the browser:
+// selecting or hovering never waits on a request.
+export function DetailPane(props: Props) {
+  const { model, selected } = props;
+  // Held above the selection, so comparing three files' explanations
+  // doesn't mean reopening the tab three times.
+  const [tab, setTab] = useState<Tab>("structure");
+
+  if (selected === null) return <RepositoryOverview {...props} />;
+
+  const path =
+    selected.kind === "file"
+      ? model.files[selected.file].path
+      : (() => {
+          const directory = model.groups[selected.group].directory;
+          return directory === "." ? "./" : directory + "/";
+        })();
+
   return (
-    <FileDetail
-      key={selected.file}
-      model={model}
-      graph={graph}
-      typeOnly={typeOnly}
-      file={selected.file}
-      onSelect={onSelect}
-    />
+    <>
+      <div className="sticky top-0 z-10 bg-surface">
+        <Title label={selected.kind === "file" ? "File" : "Folder"} path={path} />
+        <Tabs tab={tab} onChange={setTab} />
+      </div>
+      {tab === "explanation" ? (
+        <ExplanationEmpty subject={selected.kind === "file" ? "file" : "folder"} />
+      ) : selected.kind === "folder" ? (
+        <FolderStructure {...props} group={selected.group} />
+      ) : (
+        // Keyed by file so a new selection starts with no walk shown.
+        <FileStructure key={selected.file} {...props} file={selected.file} />
+      )}
+    </>
+  );
+}
+
+// The resting state, and the first thing anyone sees: what this repository
+// is, what it leans on, and where reading starts.
+function RepositoryOverview({ model, graph, onSelect, hovered, onHover }: Props) {
+  const summary = useMemo(() => summarize(model.files, graph), [model, graph]);
+  const top = summary.leanedOn.slice(0, SUMMARY_ROWS);
+  const most = top.length > 0 ? graph.importers[top[0]].length : 0;
+  const row = rowOf(model, onSelect, hovered, onHover);
+
+  return (
+    <>
+      <header className="px-3 pt-2 pb-2.5">
+        <div className="text-[11px] text-muted">Repository</div>
+        <h2 className="font-mono text-[14px] leading-5 font-semibold break-all">{model.repository.name}</h2>
+        <p className="mt-0.5 text-[11px] leading-4 text-muted">
+          {model.repository.adapters.length === 0 ? (
+            "No framework or tool conventions recognised."
+          ) : (
+            <>
+              Conventions read:{" "}
+              <span className="font-mono text-text">{model.repository.adapters.join(", ")}</span>
+            </>
+          )}
+        </p>
+      </header>
+
+      <dl className="grid grid-cols-3 border-y border-border">
+        <Stat term="Files" value={summary.files} />
+        <Stat term="Imports" value={summary.links} title="Distinct file-to-file imports the parser resolved" />
+        <Stat term="Route files" value={summary.routeFiles} title="Files an adapter names as a page, route handler or API route" />
+      </dl>
+      <p className="border-b border-border px-3 py-1.5 text-[11px] leading-4 text-muted">
+        <span className="font-mono text-text tabular-nums">{summary.unidentified}</span> of {summary.files} files
+        aren&apos;t named by any convention.
+      </p>
+
+      <section className="border-b border-border px-3 py-2">
+        <ListHeading title="Most depended on" count={<span className="text-incoming">←{summary.leanedOn.length}</span>} />
+        <Caption>Ordered by how many files import each one.</Caption>
+        {top.length === 0 ? (
+          <Caption>Nothing in the repository imports anything else in it.</Caption>
+        ) : (
+          <ul>
+            {top.map((file) => {
+              const count = graph.importers[file].length;
+              return row(
+                file,
+                <span className="flex w-[64px] shrink-0 items-center justify-end gap-1.5">
+                  {/* Share of the most-imported file, so the drop-off reads at a glance. */}
+                  <span className="h-1 rounded-full bg-incoming/70" style={{ width: Math.max(2, (count / most) * 36) }} />
+                  <span className="w-[22px] text-right font-mono text-[11px] text-incoming tabular-nums">{count}</span>
+                </span>,
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      <UnimportedList model={model} graph={graph} files={summary.unimported} row={row} />
+    </>
+  );
+}
+
+function UnimportedList({
+  model,
+  graph,
+  files,
+  row,
+}: {
+  model: MapModel;
+  graph: Adjacency;
+  files: number[];
+  row: Row;
+}) {
+  const [all, setAll] = useState(false);
+  const shown = all ? files : files.slice(0, SUMMARY_ROWS);
+  return (
+    <section className="px-3 py-2">
+      <ListHeading title="Nothing imports" count={<span className="text-muted">{files.length}</span>} />
+      <Caption>Where reading starts. The ones importing the most come first.</Caption>
+      {files.length === 0 ? (
+        <Caption>Every file is imported by another.</Caption>
+      ) : (
+        <ul>
+          {shown.map((file) =>
+            row(
+              file,
+              <>
+                {model.files[file].role !== null && (
+                  <span className="shrink-0 text-[11px] text-muted">{model.files[file].role}</span>
+                )}
+                <span className="w-[30px] shrink-0 text-right font-mono text-[11px] text-outgoing tabular-nums">
+                  {graph.imports[file].length}→
+                </span>
+              </>,
+            ),
+          )}
+        </ul>
+      )}
+      {files.length > SUMMARY_ROWS && (
+        <button
+          type="button"
+          onClick={() => setAll((current) => !current)}
+          className="mt-1 h-6 cursor-pointer text-[11px] text-muted hover:text-text"
+        >
+          {all ? `Show the first ${SUMMARY_ROWS}` : `Show all ${files.length}`}
+        </button>
+      )}
+    </section>
+  );
+}
+
+function Stat({ term, value, title }: { term: string; value: number; title?: string }) {
+  return (
+    <div title={title} className="border-r border-border px-3 py-1.5 last:border-r-0">
+      <dt className="text-[11px] text-muted">{term}</dt>
+      <dd className="font-mono text-[15px] leading-5 tabular-nums">{value.toLocaleString("en-US")}</dd>
+    </div>
   );
 }
 
@@ -55,7 +184,7 @@ export function DetailPane({ model, graph, typeOnly, selected, onSelect }: Props
 function Title({ label, path }: { label: string; path: string }) {
   const slash = path.lastIndexOf("/", path.length - 2) + 1;
   return (
-    <header className="px-3 pt-2 pb-2.5">
+    <header className="px-3 pt-2 pb-2">
       <div className="text-[11px] text-muted">{label}</div>
       <h2 className="font-mono text-[13px] leading-5 break-all">
         {path.slice(0, slash)}
@@ -65,12 +194,49 @@ function Title({ label, path }: { label: string; path: string }) {
   );
 }
 
-function Facts({ children }: { children: ReactNode }) {
+const TABS: { id: Tab; label: string }[] = [
+  { id: "structure", label: "Structure" },
+  { id: "explanation", label: "Explanation" },
+];
+
+function Tabs({ tab, onChange }: { tab: Tab; onChange: (tab: Tab) => void }) {
   return (
-    <dl className="grid grid-cols-[108px_1fr] border-t border-border px-3 py-2 text-[12px] leading-6">
-      {children}
-    </dl>
+    <div role="tablist" className="flex gap-3 border-b border-border px-3">
+      {TABS.map((t) => (
+        <button
+          key={t.id}
+          type="button"
+          role="tab"
+          aria-selected={t.id === tab}
+          onClick={() => onChange(t.id)}
+          className={
+            "-mb-px h-7 cursor-pointer border-b-2 text-[12px] " +
+            (t.id === tab ? "border-accent text-text" : "border-transparent text-muted hover:text-text")
+          }
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
   );
+}
+
+// Nothing fills this until there's a model call to fill it with, and
+// nothing here pretends otherwise.
+function ExplanationEmpty({ subject }: { subject: "file" | "folder" }) {
+  return (
+    <div className="px-3 py-4">
+      <p className="text-[12px]">No explanation for this {subject} yet.</p>
+      <p className="mt-0.5 text-[11px] leading-4 text-muted">
+        An explanation describes what the parser found here, and nothing beyond it. The Structure tab has
+        everything the parser found.
+      </p>
+    </div>
+  );
+}
+
+function Facts({ children }: { children: ReactNode }) {
+  return <dl className="grid grid-cols-[108px_1fr] px-3 py-2 text-[12px] leading-6">{children}</dl>;
 }
 
 function Fact({ term, children }: { term: string; children: ReactNode }) {
@@ -82,70 +248,93 @@ function Fact({ term, children }: { term: string; children: ReactNode }) {
   );
 }
 
+function FolderStructure({ model, group: index }: Props & { group: number }) {
+  const group = model.groups[index];
+  // Kinds in the rail's order, so a kind sits where it does there.
+  const kinds = model.categories
+    .map((category) => ({
+      ...category,
+      inside: group.files.filter((file) => model.files[file].kind === category.name).length,
+    }))
+    .filter((category) => category.inside > 0);
+  return (
+    <>
+      <Facts>
+        <Fact term="Files">{group.files.length} files</Fact>
+        <Fact term="Depends on">
+          <span className="text-outgoing">{group.fanOut} files outside</span>
+        </Fact>
+        <Fact term="Depended on by">
+          <span className="text-incoming">{group.fanIn} files outside</span>
+        </Fact>
+      </Facts>
+      <section className="border-t border-border px-3 py-2">
+        <ListHeading title="Kinds inside" count={<span className="text-muted">{kinds.length}</span>} />
+        <ul>
+          {kinds.map((kind) => (
+            <li key={kind.name} className="flex h-6 items-center gap-2">
+              <KindSwatch hue={kind.hue} />
+              <span className="min-w-0 flex-1 truncate font-mono text-[12px]">{kind.name}</span>
+              <span className="font-mono text-[11px] text-muted tabular-nums">{kind.inside}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </>
+  );
+}
+
 const WALKS: { direction: Direction; label: string; empty: string }[] = [
   { direction: "dependents", label: "Blast radius", empty: "Nothing imports this file." },
   { direction: "dependencies", label: "Dependency chain", empty: "This file imports nothing in the repository." },
 ];
 
-function FileDetail({
-  model,
-  graph,
-  typeOnly,
-  file,
-  onSelect,
-}: Omit<Props, "selected"> & { file: number }) {
+function FileStructure({ model, graph, typeOnly, file, onSelect, hovered, onHover }: Props & { file: number }) {
   const [direction, setDirection] = useState<Direction | null>(null);
   const info = model.files[file];
   const slash = info.path.lastIndexOf("/");
+  // The counts above are these lists' lengths, so a count always matches
+  // the rows under it.
   const imports = [...graph.imports[file]].sort((a, b) => a - b);
   const importers = [...graph.importers[file]].sort((a, b) => a - b);
   // Arithmetic over edges the browser already holds: computed on render,
   // no spinner, no request.
   const reached = direction === null ? [] : walk(graph, file, direction);
   const active = WALKS.find((w) => w.direction === direction);
-
-  const row = (other: number, aside?: ReactNode) => (
-    <li key={other}>
-      <button
-        type="button"
-        onClick={() => onSelect(other)}
-        className="-mx-1.5 flex h-6 w-[calc(100%+12px)] cursor-pointer items-center gap-2 rounded-[3px] px-1.5 hover:bg-raised"
-      >
-        <PathText path={model.files[other].path} className="flex-1" />
-        {aside}
-      </button>
-    </li>
-  );
+  const row = rowOf(model, onSelect, hovered, onHover);
   const typeTag = (pair: string) =>
     typeOnly.has(pair) ? <span className="shrink-0 text-[11px] text-muted">type</span> : null;
 
   return (
     <>
-      <Title label="File" path={info.path} />
       <Facts>
         <Fact term="Kind">
           <KindSwatch hue={info.hue} />
           <span className="font-mono">{info.kind}</span>
+        </Fact>
+        <Fact term="Reached as">
+          {info.role === null ? <span className="text-muted">no convention</span> : info.role}
         </Fact>
         <Fact term="Folder">
           <span className="truncate font-mono" title={info.path}>
             {slash === -1 ? "./" : info.path.slice(0, slash)}
           </span>
         </Fact>
-        {info.role !== null && <Fact term="Reached as">{info.role}</Fact>}
-        <Fact term="Length">{info.lines === null ? "not read" : `${info.lines} lines`}</Fact>
+        <Fact term="Length">{info.lines === null ? <span className="text-muted">not read</span> : `${info.lines} lines`}</Fact>
         <Fact term="Depends on">
-          <span className="text-outgoing">{info.fanOut} files</span>
+          <span className="text-outgoing">{imports.length} files</span>
         </Fact>
         <Fact term="Depended on by">
-          <span className="text-incoming">{info.fanIn} files</span>
+          <span className="text-incoming">{importers.length} files</span>
         </Fact>
       </Facts>
 
       <section className="border-t border-border px-3 py-2">
         <ListHeading title="Imports" count={<span className="text-outgoing">{imports.length}→</span>} />
+        {imports.length === 0 && <Caption>Imports nothing in the repository.</Caption>}
         <ul className="mb-2">{imports.map((other) => row(other, typeTag(`${file}>${other}`)))}</ul>
         <ListHeading title="Imported by" count={<span className="text-incoming">←{importers.length}</span>} />
+        {importers.length === 0 && <Caption>Nothing in the repository imports this.</Caption>}
         <ul>{importers.map((other) => row(other, typeTag(`${other}>${file}`)))}</ul>
       </section>
 
@@ -168,7 +357,7 @@ function FileDetail({
         </div>
         {active && (
           <div className="mt-2">
-            {reached.length === 0 && <p className="text-[11px] text-muted">{active.empty}</p>}
+            {reached.length === 0 && <Caption>{active.empty}</Caption>}
             {Array.from({ length: DEFAULT_DEPTH }, (_, i) => i + 1).map((depth) => {
               const files = reached.filter((r) => r.depth === depth);
               if (files.length === 0) return null;
@@ -189,6 +378,40 @@ function FileDetail({
   );
 }
 
+type Row = (file: number, aside?: ReactNode) => ReactNode;
+
+// One clickable path. Clicking moves the map's selection to it; hovering
+// lights it on the map, and a hover on the map lights it here.
+function rowOf(
+  model: MapModel,
+  onSelect: (file: number) => void,
+  hovered: Selection,
+  onHover: (hovered: Selection) => void,
+): Row {
+  return function row(file, aside) {
+    const lit =
+      hovered !== null &&
+      (hovered.kind === "file" ? hovered.file === file : hovered.group === model.files[file].group);
+    return (
+      <li key={file}>
+        <button
+          type="button"
+          onClick={() => onSelect(file)}
+          onMouseEnter={() => onHover({ kind: "file", file })}
+          onMouseLeave={() => onHover(null)}
+          className={
+            "-mx-1.5 flex h-6 w-[calc(100%+12px)] cursor-pointer items-center gap-2 rounded-[3px] px-1.5 text-left " +
+            (lit ? "bg-raised shadow-[inset_2px_0_0_var(--accent)]" : "hover:bg-raised")
+          }
+        >
+          <PathText path={model.files[file].path} className="flex-1" />
+          {aside}
+        </button>
+      </li>
+    );
+  };
+}
+
 function ListHeading({ title, count }: { title: string; count: ReactNode }) {
   return (
     <h3 className="flex h-6 items-center text-[12px]">
@@ -196,4 +419,8 @@ function ListHeading({ title, count }: { title: string; count: ReactNode }) {
       <span className="font-mono text-[11px] tabular-nums">{count}</span>
     </h3>
   );
+}
+
+function Caption({ children }: { children: ReactNode }) {
+  return <p className="mb-1 text-[11px] leading-4 text-muted">{children}</p>;
 }

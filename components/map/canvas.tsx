@@ -36,6 +36,9 @@ type CanvasProps = {
   setSelected: Dispatch<SetStateAction<Selection>>;
   // A rail category: files of any other kind dim. Null shows everything.
   category: string | null;
+  // A file or folder the pointer is over, here or in the detail pane.
+  hovered: Selection;
+  onHover: (hovered: Selection) => void;
 };
 
 export function MapCanvas(props: CanvasProps) {
@@ -46,7 +49,7 @@ export function MapCanvas(props: CanvasProps) {
   );
 }
 
-function Canvas({ model, open, setOpen, selected, setSelected, category }: CanvasProps) {
+function Canvas({ model, open, setOpen, selected, setSelected, category, hovered, onHover }: CanvasProps) {
   const pinned = selected?.kind === "file" ? selected.file : null;
   const view = useMemo(() => buildView(model, open.groups, pinned), [model, open.groups, pinned]);
   const highlight = useMemo(() => highlightOf(model, view, selected), [model, view, selected]);
@@ -56,6 +59,9 @@ function Canvas({ model, open, setOpen, selected, setSelected, category }: Canva
     [model, view, selected, highlight, filter],
   );
   const edges = useMemo(() => toEdges(view, highlight, filter), [view, highlight, filter]);
+  // Hover is a stylesheet rule, not node data: rebuilding every node on each
+  // pointer move would lag, and a rule changes only the one element it names.
+  const hoverRule = useMemo(() => hoverRuleOf(model, view, hovered), [model, view, hovered]);
 
   const { fitView, getViewport } = useReactFlow();
   const store = useStoreApi();
@@ -117,16 +123,28 @@ function Canvas({ model, open, setOpen, selected, setSelected, category }: Canva
     setSelected({ kind: "folder", group });
   };
 
+  const onNodeMouseMove: NodeMouseHandler<MapNode> = (event, node) => {
+    const row = event.target instanceof Element ? event.target.closest("[data-file]") : null;
+    onHover(
+      row
+        ? { kind: "file", file: Number(row.getAttribute("data-file")) }
+        : { kind: "folder", group: node.data.group },
+    );
+  };
+
   // Absolutely placed so the canvas has a definite size whatever the flex
   // chain above it resolves to.
   return (
     <div className="absolute inset-0">
+      {hoverRule !== null && <style>{hoverRule}</style>}
       <ReactFlow<MapNode, Edge>
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
         onNodeClick={onNodeClick}
         onPaneClick={() => setSelected(null)}
+        onNodeMouseMove={onNodeMouseMove}
+        onNodeMouseLeave={() => onHover(null)}
         // The picture is the layout's, so nothing is dragged, connected or
         // selected through React Flow; selection is ours.
         nodesDraggable={false}
@@ -137,6 +155,23 @@ function Canvas({ model, open, setOpen, selected, setSelected, category }: Canva
       />
     </div>
   );
+}
+
+// Where a hovered file is on screen: its own row, the "more" row of an open
+// panel too short to show it, or the folded box it's inside.
+function hoverRuleOf(model: MapModel, view: View, hovered: Selection): string | null {
+  if (hovered === null) return null;
+  const group = groupOf(model, hovered);
+  const box = view.boxes.find((b) => b.group === group);
+  if (!box) return null;
+  const target =
+    box.kind === "folder" || hovered.kind === "folder"
+      ? `[data-box="${group}"]`
+      : box.rows.includes(hovered.file)
+        ? `[data-file="${hovered.file}"]`
+        : `[data-more="${group}"]`;
+  // Opacity overrides the dimming, so a neighbour stays visible when lit.
+  return `.react-flow ${target} { outline: 1px solid var(--accent); outline-offset: -1px; opacity: 1 !important; }`;
 }
 
 type Highlight = {

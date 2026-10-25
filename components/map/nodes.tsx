@@ -67,6 +67,7 @@ function Stats({ files, fanIn, fanOut, matched }: Pick<Counts, "files" | "fanIn"
 export function FolderBox({ data }: NodeProps<FolderNode>) {
   return (
     <div
+      data-box={data.group}
       title={data.directory}
       className="h-full w-full cursor-pointer rounded-[3px] border border-border bg-surface px-2 py-1.5 hover:border-muted"
       style={{ opacity: data.dimmed ? DIMMED : 1 }}
@@ -126,6 +127,7 @@ export function PanelBox({ data }: NodeProps<PanelNode>) {
         // Edges to files without a row end here, so nothing points at a file
         // that isn't on screen.
         <div
+          data-more={data.group}
           className="relative flex items-center px-2 text-[11px] text-muted"
           style={{ height: ROW_HEIGHT, opacity: data.moreDimmed ? DIMMED : 1 }}
         >

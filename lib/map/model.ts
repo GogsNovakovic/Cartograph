@@ -37,6 +37,9 @@ export type MapGroup = {
 export type Category = { name: string; count: number; hue: number | null };
 
 export type MapModel = {
+  // What the repository is called, and the adapters whose conventions named
+  // at least one of its files.
+  repository: { name: string; adapters: string[] };
   files: MapFile[];
   groups: MapGroup[];
   // Distinct [importer, imported] file index pairs. Duplicate imports of the
@@ -142,5 +145,8 @@ export function buildMapModel(result: ParseResult): MapModel {
     fanOut: imported[g].size,
   }));
 
-  return { files, groups, links, typeOnly, threshold, categories };
+  // The checked-in result only knows the directory it was parsed from; its
+  // last segment is the repository's name.
+  const name = result.root.replace(/\/+$/, "").split("/").pop() || result.root;
+  return { repository: { name, adapters: result.adapters }, files, groups, links, typeOnly, threshold, categories };
 }
