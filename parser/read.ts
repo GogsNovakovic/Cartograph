@@ -175,7 +175,7 @@ export function toParseResult(value: unknown): ParseResult {
   const result: ParseResult = {
     schemaVersion: SCHEMA_VERSION,
     root: string(r.root, "result.root"),
-    adapter: string(r.adapter, "result.adapter"),
+    adapters: array(r.adapters, "result.adapters").map((a, i) => string(a, `result.adapters[${i}]`)),
     files: array(r.files, "result.files").map((f, i) => readFile(f, `result.files[${i}]`)),
     edges: array(r.edges, "result.edges").map((e, i) => readEdge(e, `result.edges[${i}]`)),
     coverage: readCoverage(r.coverage, "result.coverage"),

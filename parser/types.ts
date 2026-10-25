@@ -1,7 +1,7 @@
 // The shape the parser writes. Everything downstream reads this, so a change
 // here is a change to a contract: bump SCHEMA_VERSION when it changes.
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const EDGE_KINDS = ["import", "re_export", "dynamic_import", "require"] as const;
 export type EdgeKind = (typeof EDGE_KINDS)[number];
@@ -19,7 +19,8 @@ export type FileNode = {
   // Null means parsed. A skipped file is still a node; it just has no
   // outgoing edges because nothing was read from it.
   skipReason: string | null;
-  // What the framework adapter's conventions say this file is, or null.
+  // What a framework or tool reaches this file as by convention (a page, a
+  // test, a config), or null when no adapter names it.
   role: string | null;
   // Distinct files this one imports / distinct files importing this one.
   fanOut: number;
@@ -88,7 +89,8 @@ export type ExcludedDirectory = { path: string; reason: string };
 export type ParseResult = {
   schemaVersion: typeof SCHEMA_VERSION;
   root: string;
-  adapter: string;
+  // The adapters that named at least one file; empty when none applied.
+  adapters: string[];
   files: FileNode[];
   edges: Edge[];
   coverage: Coverage;

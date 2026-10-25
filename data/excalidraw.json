@@ -1,7 +1,15 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "root": "/private/tmp/claude-501/-Users-gogs-Documents-next-js-projects-cartograph/cbe64687-0405-43a5-ba15-51987a70792e/scratchpad/repos/excalidraw",
-  "adapter": "none",
+  "adapters": [
+    "nextjs",
+    "docusaurus",
+    "vite",
+    "vitest",
+    "package-scripts",
+    "typescript",
+    "tool-config"
+  ],
   "files": [
     {
       "path": ".lintstagedrc.js",
@@ -10,7 +18,7 @@
       "lines": 14,
       "sha256": "529f13f34b64f697ede3c60611ed3b4312eeb65bd97b1d451d03b40b5cde86d2",
       "skipReason": null,
-      "role": null,
+      "role": "config",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -21,7 +29,7 @@
       "lines": 3,
       "sha256": "543f91b48879d760be7a7c722f9fa482e471d6c197418ce6f77d1c058e28914d",
       "skipReason": null,
-      "role": null,
+      "role": "config",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -32,7 +40,7 @@
       "lines": 178,
       "sha256": "9b55059ee4e201e33ec59468a7d55cd6cada7ad594aa6ef382b94f08aef19d34",
       "skipReason": null,
-      "role": null,
+      "role": "config",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -43,7 +51,7 @@
       "lines": 133,
       "sha256": "3bc26bb43cb2e063c815c03844c81d160511bb1220cfad5fd0689b83e28a2aa8",
       "skipReason": null,
-      "role": null,
+      "role": "config",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -98,7 +106,7 @@
       "lines": 36,
       "sha256": "d36efd879e72ec3b0af71ca44c7007437b17c1af087ca9c5f588a91e361d2d96",
       "skipReason": null,
-      "role": null,
+      "role": "page",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -109,7 +117,7 @@
       "lines": 11,
       "sha256": "8e67f8f2da8a4d34a7b34b03893b59c92dc263c100615f3487fb5c036bc8ebe1",
       "skipReason": null,
-      "role": null,
+      "role": "theme component",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -120,7 +128,7 @@
       "lines": 39,
       "sha256": "fb4706bc16f986b29e30d560e0581e74e1f05ff996734e56b948c18fbb0cc56c",
       "skipReason": null,
-      "role": null,
+      "role": "theme component",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -131,7 +139,7 @@
       "lines": 12,
       "sha256": "9e2516116ce70e858596c53a42965d6d9ac5ff6b84c42ffb1a89c7771ce71894",
       "skipReason": null,
-      "role": null,
+      "role": "config",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -142,7 +150,7 @@
       "lines": 11,
       "sha256": "81249a705e36334b8526c3b0d9dc77075d9afe928d96e490fd6d9e66400ba480",
       "skipReason": null,
-      "role": null,
+      "role": "layout",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -153,7 +161,7 @@
       "lines": 27,
       "sha256": "8afd1f91a3faaa8360f4a23a2bcd9f4ea56da30f28481e7e462557ffb8232ba8",
       "skipReason": null,
-      "role": null,
+      "role": "page",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -175,7 +183,7 @@
       "lines": 23,
       "sha256": "1d7298e872269239a40245130967cfb2f51ee71d9f6ccd979abc7dae44de6881",
       "skipReason": null,
-      "role": null,
+      "role": "page",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -230,7 +238,7 @@
       "lines": 29,
       "sha256": "d51ed50107e1d0665ffbf3d9c74b326a00e580cfb2b658489c94baba1cae44ca",
       "skipReason": null,
-      "role": null,
+      "role": "entry",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -263,7 +271,7 @@
       "lines": 19,
       "sha256": "e3439fad99e3c65326f7e63fdde1368050a061c34b7bd94c441fec032ce7ec23",
       "skipReason": null,
-      "role": null,
+      "role": "config",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -637,7 +645,7 @@
       "lines": 6,
       "sha256": "341ca8622896b6c256caa69ae3ef3da7c0001d6db2d2db47d23499df1391f764",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -648,7 +656,7 @@
       "lines": 17,
       "sha256": "423b98cad0b4f3508501ba86a165580bfec462fcbbdce66f6fbe1d7d63c566f8",
       "skipReason": null,
-      "role": null,
+      "role": "entry",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -703,7 +711,7 @@
       "lines": 59,
       "sha256": "b59b3d064810a74dc0c736e7a3b393b672b5ff4d351e93a4a88363dcd5a857ed",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 7,
       "fanIn": 0
     },
@@ -714,7 +722,7 @@
       "lines": 39,
       "sha256": "ffed4f66e777ebf305cedd05af79d0f74da5ceffdecd2049781e44664db9c2a6",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 3,
       "fanIn": 0
     },
@@ -725,7 +733,7 @@
       "lines": 252,
       "sha256": "6f63de466dbfd6a0bd0ffa7b35bf3a09dfb359b9fa63b2b9dfa16cbb14c1888d",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 6,
       "fanIn": 0
     },
@@ -736,7 +744,7 @@
       "lines": 22,
       "sha256": "c403f2179f8520fb0b00f41844bd9d60e91e98d8becc511637167cf5da2e49a0",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -758,7 +766,7 @@
       "lines": 49,
       "sha256": "8ccc1e340ac9df8ff15d442d342b768a60d11de59cf33af26646a18949f2ad0b",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -769,7 +777,7 @@
       "lines": 454,
       "sha256": "5ee9c8aaccdfa1e502af92b580ffc5f9f30265c94f6cdc0bb6b9117242166152",
       "skipReason": null,
-      "role": null,
+      "role": "config",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -791,7 +799,7 @@
       "lines": 3,
       "sha256": "4bbb7cd08392b521ff7ba7db4387162fc15aa6af1f400ff6c9e460485b2457f5",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -802,7 +810,7 @@
       "lines": 74,
       "sha256": "51c3685ff36526caa6bdedb184456b5f6342e9b3b732568b6f8772e7171bbf83",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -846,7 +854,7 @@
       "lines": 305,
       "sha256": "5303cc44725a7637d110f85809e6ee82b71c2d8c3bab49e0254dd5928f893c5d",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -1000,7 +1008,7 @@
       "lines": 204,
       "sha256": "e9f168d5433e4ddeb0beb46b272f645832b314c131c1c247e2dc27efbf1a92db",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -1033,7 +1041,7 @@
       "lines": 109,
       "sha256": "9f5a12e78f1cbf8687af23c94693cf3c7546eb521f7ef8a3da3e743107617719",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -1044,7 +1052,7 @@
       "lines": 271,
       "sha256": "a814594423144051e79a28977756099aad861e5a229e3f0c8611a98043200cf1",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -1055,7 +1063,7 @@
       "lines": 62,
       "sha256": "ae55ba72fc5fcdcd1259d69d10483add230f3ded8365e1eed274c058a48904bc",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -1066,7 +1074,7 @@
       "lines": 31,
       "sha256": "e5f6ef1848db912c7de488d8755fa4c32eaf3d1d96c09b93746cd748d85d16d7",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -1077,7 +1085,7 @@
       "lines": 3,
       "sha256": "4bbb7cd08392b521ff7ba7db4387162fc15aa6af1f400ff6c9e460485b2457f5",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -1099,7 +1107,7 @@
       "lines": 60,
       "sha256": "6876299a4710ecf7304dab6be7902cd566e01dc604ab2239bf3d17cfbffee538",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 6,
       "fanIn": 0
     },
@@ -1110,7 +1118,7 @@
       "lines": 1166,
       "sha256": "a8c0034288e967ba0c04368208800fd8cc6974fca2d6efea56f19fa456a23d04",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 12,
       "fanIn": 0
     },
@@ -1121,7 +1129,7 @@
       "lines": 1190,
       "sha256": "a69a4859bac7ea4a494b206e95e065a8240203df4481af5df008d83161f3deec",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -1726,7 +1734,7 @@
       "lines": 1097,
       "sha256": "650723fe31e401c989768fb24b831eb75343e4ee772babf2d85d2eae1918fbb1",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 7,
       "fanIn": 0
     },
@@ -1737,7 +1745,7 @@
       "lines": 1103,
       "sha256": "983d34abdc0cb539c4d2e0908412c905f72346341670f2f0b1f3e6eb16cfe99f",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 13,
       "fanIn": 0
     },
@@ -1748,7 +1756,7 @@
       "lines": 378,
       "sha256": "81e03f18598af09fa4e474dc1d2ad069bad4af4decb949296fe05f13d914e3d1",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 6,
       "fanIn": 0
     },
@@ -1759,7 +1767,7 @@
       "lines": 2272,
       "sha256": "9481a8e9c67b3ffbcddabfcf38f42b1cbe8ab669679d644e4db3ad62e74946a3",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 6,
       "fanIn": 0
     },
@@ -1770,7 +1778,7 @@
       "lines": 945,
       "sha256": "a44c16a0820c8935dd0f3743f6b5bf194feaa203b638a78bfa8d2fd0d10b8be1",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 15,
       "fanIn": 0
     },
@@ -1781,7 +1789,7 @@
       "lines": 568,
       "sha256": "7998469df5a00337894fa969119759061a2d04309c95631505406ded03776454",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 9,
       "fanIn": 0
     },
@@ -1792,7 +1800,7 @@
       "lines": 853,
       "sha256": "5b8363ee495a57e91428c6a9e27a71372b25ef060fbf71878180ab3d445a3647",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 8,
       "fanIn": 0
     },
@@ -1803,7 +1811,7 @@
       "lines": 128,
       "sha256": "f782b12c049cdbcb17a6ab40388876da943d395284e66c1f8d3d2a65482143ab",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 6,
       "fanIn": 0
     },
@@ -1814,7 +1822,7 @@
       "lines": 228,
       "sha256": "19c9d050aff3cef1ef2809d081c8192ad71675b8d1ac0ae60dc741bf06310c1e",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 9,
       "fanIn": 0
     },
@@ -1825,7 +1833,7 @@
       "lines": 1297,
       "sha256": "1522ab22fd6c259df98b4af0386cc8c45f2c602f30008b02228e57841b827a8a",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 11,
       "fanIn": 0
     },
@@ -1836,7 +1844,7 @@
       "lines": 430,
       "sha256": "dfd0c9b10c686ff4a69574c92c045f5b7778f0a843dbe83c55cbad7a5fd731de",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 12,
       "fanIn": 0
     },
@@ -1847,7 +1855,7 @@
       "lines": 273,
       "sha256": "5aeb45fa1769f30b7f86ea4671ee3a430b84b79c6a4b8d84b7b8f5c12f55c09c",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -1858,7 +1866,7 @@
       "lines": 683,
       "sha256": "dd29985e5b47d0a2bd08a7032e45fbbbe8e7e7049d4f4fe6c95e0c86a39e16c2",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 6,
       "fanIn": 0
     },
@@ -1869,7 +1877,7 @@
       "lines": 877,
       "sha256": "5dea660d9c9336d314c144b8c0302c8abd149b16b871dade2e28bda864a29e3d",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -1880,7 +1888,7 @@
       "lines": 1288,
       "sha256": "269d704f8b756a91841e632f4232730e1c08f3237dd5e18d1e0c86b3c00cc01e",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 9,
       "fanIn": 0
     },
@@ -1891,7 +1899,7 @@
       "lines": 2065,
       "sha256": "cf4eacad0194001f2dad1b6983d04e6514d46c0c66986f4bf3ee14db352122f6",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 13,
       "fanIn": 0
     },
@@ -1902,7 +1910,7 @@
       "lines": 52,
       "sha256": "d785d26fcca4c341dcc06a7c6735bdf7e2107bb5a73cbcb032b53d4f8ef1baf0",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -1913,7 +1921,7 @@
       "lines": 327,
       "sha256": "5b5f7c1d1fb9a163a14f05a7ec986bdb701506c709d5bde68653fbd2f36051a0",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -1924,7 +1932,7 @@
       "lines": 83,
       "sha256": "82ad8698b7d168b9815926efbcec7df25e4d68f532c84c8d1c9ea069cec007b3",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 3,
       "fanIn": 0
     },
@@ -1935,7 +1943,7 @@
       "lines": 1572,
       "sha256": "52becc84c41bca6b77dc9690618018684a87c65224f2f56003bb15c6e5a0766c",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 15,
       "fanIn": 0
     },
@@ -1946,7 +1954,7 @@
       "lines": 35,
       "sha256": "551ff71ded44bdab4beafa5ef895bfa2236cabeae45d19f35f63d0ed05ee1606",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -1957,7 +1965,7 @@
       "lines": 31,
       "sha256": "85a6358289585b70cece55c9032fec6b85a9cfc73a6d4c6a56c7433a878e10f7",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 3,
       "fanIn": 0
     },
@@ -1968,7 +1976,7 @@
       "lines": 58,
       "sha256": "cc4911f7a9804ba6defb12cdce0cdcd18973ccae60397e6c9b854b36da2dd0e1",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -1979,7 +1987,7 @@
       "lines": 446,
       "sha256": "8286b65b3c74f50121eb04d3119325735cf1bd1ac632f7f1e44b41d027daceaa",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -1990,7 +1998,7 @@
       "lines": 379,
       "sha256": "5799fa0657f854606d4ddb0a99e5f9d57caa3a025751adc60478ddfe5bc0f42e",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -2001,7 +2009,7 @@
       "lines": 703,
       "sha256": "9912e764c5ed9abb3b65b38137de99ac6dab10e7cf600c7faf6484565f507890",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -2012,7 +2020,7 @@
       "lines": 115,
       "sha256": "0b3614b94bc809774c5379a260959ee2c6a7ad561f4e5ec9702dd8404cb5b33f",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -2023,7 +2031,7 @@
       "lines": 1698,
       "sha256": "610d2dc3380960a8b1cb791b3392d619781fa6070568a8c88ad0a8ee47489989",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 8,
       "fanIn": 0
     },
@@ -2100,7 +2108,7 @@
       "lines": 278,
       "sha256": "9d93ab9f21523abc2726a4c9a95551f4d3e1ecdfeee974b776bed1d6dc689684",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -2144,7 +2152,7 @@
       "lines": 531,
       "sha256": "3634c7193339c8789a05045dbf7f9d87cc277eb37bb3dcc9dbcb42ccb5b64eaa",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -2177,7 +2185,7 @@
       "lines": 70,
       "sha256": "d5cf783c2692c74c8add0e069af158dfa8e1c998a5dc941c8bc0292daaa1caff",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -2221,7 +2229,7 @@
       "lines": 211,
       "sha256": "f8a27790715158308caa82f512e75c9857ff54b3fd6a7cd5af8068a7ed4caacb",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -2320,7 +2328,7 @@
       "lines": 255,
       "sha256": "52827700cb9f35fa1fc2118e659a223d44c45e779f9085a41e3dc4738c99346b",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -2694,7 +2702,7 @@
       "lines": 1166,
       "sha256": "4d3084d44e6848fc0232fc28c30240f39711e7978243d6cc46eba2a0dec6055f",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 3,
       "fanIn": 0
     },
@@ -2716,7 +2724,7 @@
       "lines": 158,
       "sha256": "0e7b102338a80fd6e483f84495bbdac77ef9363ba1c6f1eef352c4f576067628",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -3277,7 +3285,7 @@
       "lines": 147,
       "sha256": "4e647024cca100080470df9ca46d3ff63f3101707a713e93fff4e45b2b5b95b3",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -3431,7 +3439,7 @@
       "lines": 224,
       "sha256": "c96bd319e0b512302e97b80acf95589d0b20b073aa9c1b076ad7b93cd4ec2c3d",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -3849,7 +3857,7 @@
       "lines": 75,
       "sha256": "f0a703d788b73b0f4482d0862d189596992e645b5c921a19f8c446467518acef",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -4014,7 +4022,7 @@
       "lines": 396,
       "sha256": "aca7d1dab34157a0b38269f99dd1cb55a73bbf378ebd24fa82054b3ac9fc2691",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -4278,7 +4286,7 @@
       "lines": 927,
       "sha256": "e1cfdb7f076b95624af2861192ad610eb01b6c7323db20d4fa1bf30eeb06adca",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 13,
       "fanIn": 0
     },
@@ -4564,7 +4572,7 @@
       "lines": 89,
       "sha256": "11996207aa1f6db8f91ba8b5db665a6f1ceffde3160a1c3295f704713180826d",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -4663,7 +4671,7 @@
       "lines": 497,
       "sha256": "af668ae63f491f9e5a442bb0d384c7eb518b519552c619c9537437c74c547c84",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -4674,7 +4682,7 @@
       "lines": 658,
       "sha256": "a31fa43899ea78b9b8d62d9bf9d5de1515887b3a3a76c7dbc915e8210810a0ad",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -4696,7 +4704,7 @@
       "lines": 116,
       "sha256": "e4090df2d3de0fdc84ac6c4442e3aa16bd98c441077706ce9641bed8bce00196",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -4718,7 +4726,7 @@
       "lines": 155,
       "sha256": "74faa8f4a11518458e4752a5f0edf339e1c68835c25e140664422c0c98a2d4cc",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -4740,7 +4748,7 @@
       "lines": 214,
       "sha256": "ca734969c7f45a9e4f38c4e8c50aee890a61577201b3555a9a310476e0178e5e",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -4861,7 +4869,7 @@
       "lines": 73,
       "sha256": "6fab29916af3d3f4d4da092a8d07485968815390b0ac2cd25292b8433d709b27",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 3,
       "fanIn": 0
     },
@@ -4894,7 +4902,7 @@
       "lines": 79,
       "sha256": "a1e6b3d0c7f6e2f6ed7e486692ddce99df8cb24ca9eec042fdf3f04c91a2a28a",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 3,
       "fanIn": 0
     },
@@ -4971,7 +4979,7 @@
       "lines": 59,
       "sha256": "1960dda97638853e2d26420506b105271410488d046e9ddc285abc1e0c0b424a",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -5180,7 +5188,7 @@
       "lines": 102,
       "sha256": "fa28e869d693002f886b628e0bf98f96caeef41b170b2f24d4c57e6ffbf94697",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -5268,7 +5276,7 @@
       "lines": 59,
       "sha256": "bf98fb5288ac5ef72cf1e740753073738b67b1988db107253a91e563cf772917",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -5356,7 +5364,7 @@
       "lines": 10,
       "sha256": "25639fb7a82fed12a3cb9498444e78bb2e407c450dad484d76d44457896ccd5a",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 0,
       "fanIn": 5
     },
@@ -5466,7 +5474,7 @@
       "lines": 105,
       "sha256": "d1ffd98b9d5668c129ae2e3fa7134fa9f9c4b7346f92d849af6702aa404ceaa3",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -5752,7 +5760,7 @@
       "lines": 113,
       "sha256": "d7679fa3bf5d6b64bc2a526070ad97f0d653e22579c6d9056b3ce94e53750814",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 0,
       "fanIn": 6
     },
@@ -5972,7 +5980,7 @@
       "lines": 15,
       "sha256": "5e6bcd0338f9a5b3a80dfad73f9bcf5b5367c6ca644b87b04f42b1a15eb0292a",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -6005,7 +6013,7 @@
       "lines": 1,
       "sha256": "f8a7ec5b298ce49bd0e4fd5dd47880768ecb156a790c5d5c37a2baca65060e82",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -6016,7 +6024,7 @@
       "lines": 1,
       "sha256": "57eda4c4c04a1dca45c62857326882ce9cc948c4b52973c0e3c3b7e4c3fa3990",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -6060,7 +6068,7 @@
       "lines": 90,
       "sha256": "fa9e7fc11eece7e724d3574d831328709aa13473537efc7d5a2323f95a773c7f",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -6335,7 +6343,7 @@
       "lines": 46,
       "sha256": "17b5c38ca50279106575eb5e5526149066a6310b336f11568b1fa61a6e42ded0",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -6346,7 +6354,7 @@
       "lines": 168,
       "sha256": "1f2700fe59c540836c1a13912ce95564d4e6fb15e4c9ca36767ceb76b8397fd0",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -6357,7 +6365,7 @@
       "lines": 182,
       "sha256": "12cc4bb60c1085a48aea551432e0017fa989e718b841a6f9a5e3376bb0846f61",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 7,
       "fanIn": 0
     },
@@ -6368,7 +6376,7 @@
       "lines": 167,
       "sha256": "af007dba9878431795c39735388172c36ef48220bba2142030f2f735dab60324",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -6379,7 +6387,7 @@
       "lines": 88,
       "sha256": "228d3c33bc429a034b4ba953644e71d37cbe2d34f767ab446b14bb1ff185a2f9",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 7,
       "fanIn": 0
     },
@@ -6390,7 +6398,7 @@
       "lines": 111,
       "sha256": "ed00bc94bbfe44624db600c2a7401d55e70150a680c0f80548071d5e7e8c6b65",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -6401,7 +6409,7 @@
       "lines": 653,
       "sha256": "a1878e1df3469c852e3de982948648e82c93bac4bb12f8a09b463c5d3e0893b4",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 9,
       "fanIn": 0
     },
@@ -6412,7 +6420,7 @@
       "lines": 984,
       "sha256": "562ad12cbbb5ddbba3931d9c4391a48c780534fa9bfab0a045a64289bc772523",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 10,
       "fanIn": 0
     },
@@ -6423,7 +6431,7 @@
       "lines": 839,
       "sha256": "80ee3236508162a26872c53a92adbabafe8b2929bef53658703bb243bd8959aa",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 10,
       "fanIn": 0
     },
@@ -6434,7 +6442,7 @@
       "lines": 164,
       "sha256": "6412dc303fd73ee85982e21bba4aa02656f23699199c12c001053fcf1af87882",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -6445,7 +6453,7 @@
       "lines": 39,
       "sha256": "db2757973657f3ce5de3992b709219805cffab6bbc137f48169467ddd7e0ab20",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -6456,7 +6464,7 @@
       "lines": 941,
       "sha256": "e5ff12a92b78959e8bc251be8ae1e3ffed6431953312d8cb12ead1e0d78372eb",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 10,
       "fanIn": 0
     },
@@ -6467,7 +6475,7 @@
       "lines": 386,
       "sha256": "7ed07087484930a61daa98f127514c4f2315be5cc961abda80e279a637c4e7e2",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 3,
       "fanIn": 0
     },
@@ -6478,7 +6486,7 @@
       "lines": 128,
       "sha256": "bf5119686ff96d7f0efe30315d92fb8b508784bc36d3d6566ec1c4a22e93bbb8",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -6489,7 +6497,7 @@
       "lines": 130,
       "sha256": "1a94fc2094a8cc9afa36ac539ed52dbcf6d36218d56321fd309b3b257be02b7c",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -6500,7 +6508,7 @@
       "lines": 51,
       "sha256": "a41547462a43e66189d4bf646e831fe6f52da8f544685944c9a0c58e9b135963",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -6511,7 +6519,7 @@
       "lines": 628,
       "sha256": "f82d7345072e97b462eb8522d6ae3a178d19edd3c2b3a3e1ca2ec56679f3007e",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 9,
       "fanIn": 0
     },
@@ -6522,7 +6530,7 @@
       "lines": 90,
       "sha256": "add7766a9b004f3c48713f9b4137186977c662ba80a7be25b9d4377619b7d2a8",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 7,
       "fanIn": 0
     },
@@ -6533,7 +6541,7 @@
       "lines": 46,
       "sha256": "a065d37f14192917ad42505f987d69cfda84914d75f70b2dbf4f3f393e2f09a0",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -6544,7 +6552,7 @@
       "lines": 167,
       "sha256": "3ea3b99c86d467318cb47f1ef07d31c7c292608a367659450396a436246bcf9b",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 8,
       "fanIn": 0
     },
@@ -6555,7 +6563,7 @@
       "lines": 335,
       "sha256": "0199bd851d267408e94d91bf319a80a53fb8073363d3271be73d40cc6844c8f8",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -6566,7 +6574,7 @@
       "lines": 215,
       "sha256": "b6cbf9149cc22d309e69ac78ff111482151c6a6769d5590285f030d480249a1d",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -6577,7 +6585,7 @@
       "lines": 386,
       "sha256": "2dc053c6212ffc52579b946f73aeecebc01af154239e1a59e226c3929a9b984c",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -6588,7 +6596,7 @@
       "lines": 1641,
       "sha256": "c890d0fca5f8b21dbf4d912382a632712b6eda371abedb3f146bc0054b940ea4",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 10,
       "fanIn": 0
     },
@@ -6599,7 +6607,7 @@
       "lines": 600,
       "sha256": "f3db67c1e56aa52ff62b65f71f3bbdb2e727be0c587f4661d803b675b30a6a7b",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 8,
       "fanIn": 0
     },
@@ -6610,7 +6618,7 @@
       "lines": 858,
       "sha256": "821fdff0c1e72585b085dcfc4911690410414eaf05136cf5197979e41d84c67b",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 10,
       "fanIn": 0
     },
@@ -6621,7 +6629,7 @@
       "lines": 390,
       "sha256": "7ecfd4ba889f58806754d391226330cb82e6f89d91b7437264e5a4491eb4242e",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 8,
       "fanIn": 0
     },
@@ -6632,7 +6640,7 @@
       "lines": 75,
       "sha256": "1bbe4d78095a0b04f3b277f14211d61765d372137ac33047d3f37c022281ca14",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -6643,7 +6651,7 @@
       "lines": 500,
       "sha256": "431c00a02e0ecbd4244d180a4ddf2608ec0d1b9de1d5e703382cb40f7ae628c4",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -6654,7 +6662,7 @@
       "lines": 264,
       "sha256": "084cbf7648744c75817ab0ee669a4d2b54c114e8a796a013607b26b0c136b21b",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 12,
       "fanIn": 0
     },
@@ -6665,7 +6673,7 @@
       "lines": 124,
       "sha256": "505f89035ca307ffc7630648a0006265a5ac59b2986b09e1acca5a7d7b33b2c6",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -6676,7 +6684,7 @@
       "lines": 330,
       "sha256": "a10c4de1e89e7c916ee5df8e44c747b7ac73c37748541280cdc2c71b157a129f",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 6,
       "fanIn": 0
     },
@@ -6687,7 +6695,7 @@
       "lines": 412,
       "sha256": "ebf39dba7324567575c943b6bc9697a45400ea4f9cd4ff59e54fe7e028eebf19",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 6,
       "fanIn": 0
     },
@@ -6731,7 +6739,7 @@
       "lines": 920,
       "sha256": "49eff17bd348c342b465872b74bcdd6f8a0ea0f7a3d74a2c2b53ee065117ddb7",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 15,
       "fanIn": 0
     },
@@ -6742,7 +6750,7 @@
       "lines": 56,
       "sha256": "2089b2f66654f4e9c3ce6674dc1013688e15d5c4b690249a26cbc393600eb553",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 3,
       "fanIn": 0
     },
@@ -6753,7 +6761,7 @@
       "lines": 60,
       "sha256": "43c2c6a9b4a88849de895641cfd37e2beffa7eebc78540f7cd0b9c74d9c68d0a",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -6830,7 +6838,7 @@
       "lines": 5308,
       "sha256": "cdf36824cf636a0074ca9db7ecfe503c61ad1650758b2fe865ff910e29492ef4",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 21,
       "fanIn": 0
     },
@@ -6841,7 +6849,7 @@
       "lines": 508,
       "sha256": "5a1320306c1333e8c9c3c7410b24085f45094e7c640138999656ba68d765d3c1",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 11,
       "fanIn": 0
     },
@@ -6852,7 +6860,7 @@
       "lines": 176,
       "sha256": "e5606f3ed3999098a77ff04da8bd3f277265195ef1d07e2f63e07182182df44c",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 13,
       "fanIn": 1
     },
@@ -6863,7 +6871,7 @@
       "lines": 1648,
       "sha256": "3afaaefcb2fc5ebe149db979b12e5cea65ebe2b25bae25dea5123e813df0dd44",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 10,
       "fanIn": 0
     },
@@ -6874,7 +6882,7 @@
       "lines": 286,
       "sha256": "a13a843cb56a74414f4ecb03aa4141a3ab5c51721915bf5cf5cc3e0efdd78167",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 8,
       "fanIn": 0
     },
@@ -6885,7 +6893,7 @@
       "lines": 2222,
       "sha256": "8936a6875d5c33e75d6b0836dd0345ab24ebd27dc1a95321d7d161eda882cbd6",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 8,
       "fanIn": 0
     },
@@ -6896,7 +6904,7 @@
       "lines": 443,
       "sha256": "a242e789d7282b7ece2dd2fbab6bb1cbc0bddb9fa9d5a59e3b59669bc5aeccd3",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 11,
       "fanIn": 0
     },
@@ -6907,7 +6915,7 @@
       "lines": 217,
       "sha256": "5370d73520861e19293d077ceeb06f22a29e42b606fa2d7a54ca0165c73dcfb8",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 10,
       "fanIn": 0
     },
@@ -6918,7 +6926,7 @@
       "lines": 227,
       "sha256": "27c96f52688390fb8fe0d34c62009d0d49fce16fe83a8510662a0976987bf779",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 6,
       "fanIn": 0
     },
@@ -6929,7 +6937,7 @@
       "lines": 816,
       "sha256": "a368172a60af0a5480e7de5b76f79c39ea6610315489ee4006bf8d62aa51a627",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 12,
       "fanIn": 0
     },
@@ -6940,7 +6948,7 @@
       "lines": 149,
       "sha256": "fa7d66b6f51e8a709273812ebb09c18e069e060694e3db5dfdf8e680aa1d137e",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 6,
       "fanIn": 0
     },
@@ -6951,7 +6959,7 @@
       "lines": 216,
       "sha256": "61aea2e4071efbc33ce554f47a8b6c86a0491d146dc67f69fc885024d24a4676",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -6962,7 +6970,7 @@
       "lines": 380,
       "sha256": "26356dadf579e0afb5acaac01df5290ed6a310447d457946031381dd088ae140",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -6995,7 +7003,7 @@
       "lines": 1200,
       "sha256": "1740fe0332a11e355fdef43b1f5e6f221059756c231a091ddec28f02b3ed6ecc",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 7,
       "fanIn": 0
     },
@@ -7006,7 +7014,7 @@
       "lines": 291,
       "sha256": "09bf416183d768138fdae89b4e585354b35cc6d11779ee367df36d39e6eb4c62",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 7,
       "fanIn": 0
     },
@@ -7017,7 +7025,7 @@
       "lines": 1304,
       "sha256": "c0dca79f58d283d40a434761cf39b538b5f8ab07745379927ab94e81dee306e5",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 15,
       "fanIn": 0
     },
@@ -7028,7 +7036,7 @@
       "lines": 85,
       "sha256": "b426399f21fc0ec3a9aab7fd7ff1465cc427ddc28cf386d78001a227626cfdbd",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -7039,7 +7047,7 @@
       "lines": 1080,
       "sha256": "84d90a46a2feac9b6c3d96906a2c6f366850e7d8f45703e2de00264d3c9c68ea",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 9,
       "fanIn": 0
     },
@@ -7050,7 +7058,7 @@
       "lines": 168,
       "sha256": "b71f8f4e2c42c5d8cec1efb82fb5edb26890b434a3765a82cea1f4c2fc7e4907",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -7061,7 +7069,7 @@
       "lines": 1324,
       "sha256": "ed03720c5fe277ed334759c4590213afe45e2108d8eb9848477a6d02c962058c",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 11,
       "fanIn": 0
     },
@@ -7072,7 +7080,7 @@
       "lines": 197,
       "sha256": "b6fd39faed82a15dc2a5fd795b3b4d1a3fa6ebf25ea830487b1da803f58f98c2",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 7,
       "fanIn": 0
     },
@@ -7083,7 +7091,7 @@
       "lines": 2031,
       "sha256": "dc801b3bde33255b490b59ab753e417e21abfc0098939363ef3cb1c615c9f43c",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 11,
       "fanIn": 0
     },
@@ -7094,7 +7102,7 @@
       "lines": 34,
       "sha256": "de9f7af3a7e5a0c5c44bc818da34e6ee8f8ab3a437cc1307f5f1093449b43a41",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -7105,7 +7113,7 @@
       "lines": 1179,
       "sha256": "52e3a52ec2cfc0853d0155df272576dbfbbeec0565452c59e9ccf7bb96fd6122",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 16,
       "fanIn": 0
     },
@@ -7127,7 +7135,7 @@
       "lines": 388,
       "sha256": "120cd1c957ae6682e76775887393816f8d8a6c4968995351f37f74aa16931c54",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 7,
       "fanIn": 0
     },
@@ -7138,7 +7146,7 @@
       "lines": 163,
       "sha256": "e3db6537ae2647ba9887b10d822e021692dc8039a4c5b25af115e4ce75897220",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 7,
       "fanIn": 0
     },
@@ -7149,7 +7157,7 @@
       "lines": 252,
       "sha256": "952a31e12524c59b8ee6452c68f7e400519ce25fc0a32653f7fc3b4dee8b878e",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 7,
       "fanIn": 0
     },
@@ -7160,7 +7168,7 @@
       "lines": 190,
       "sha256": "897d8ed3a6f23bd8d4762f3a200c8d0fc6596baec71ea498f6699a7cbc170f07",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 6,
       "fanIn": 0
     },
@@ -7171,7 +7179,7 @@
       "lines": 76,
       "sha256": "687dbe16edd2009e32563b867ddda9f811b71c523c4a2f660bc0a6d6fed22414",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -7182,7 +7190,7 @@
       "lines": 445,
       "sha256": "6a159ad4e6f2e5d57d5778468627ae80e03c48b0c6504bc91b4dd6b009306dfc",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 7,
       "fanIn": 0
     },
@@ -7193,7 +7201,7 @@
       "lines": 569,
       "sha256": "18adb26cf14c430d7b197df22858da5ace153ceeb723fc242a8fb0d0b7bb4003",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 10,
       "fanIn": 0
     },
@@ -7237,7 +7245,7 @@
       "lines": 60,
       "sha256": "72ebb8cb009923c4f378f04123ce878a46520b9da7c6a82e3779687c2d13fbfd",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -7259,7 +7267,7 @@
       "lines": 3597,
       "sha256": "83f9112cda33af72c3abb1fc9c671c07dcdf4c8b3def22cc9348946e57249def",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 14,
       "fanIn": 0
     },
@@ -7281,7 +7289,7 @@
       "lines": 0,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -7303,7 +7311,7 @@
       "lines": 0,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -7358,7 +7366,7 @@
       "lines": 3,
       "sha256": "4bbb7cd08392b521ff7ba7db4387162fc15aa6af1f400ff6c9e460485b2457f5",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -7545,7 +7553,7 @@
       "lines": 105,
       "sha256": "e24a02eb4ca3043660a41046dbaab7ec0b52dd6afbd1b66e0ea322eb6c205ec2",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 4,
       "fanIn": 0
     },
@@ -7556,7 +7564,7 @@
       "lines": 157,
       "sha256": "27381c49791af4c3d74c2b498c6ab4d0183715b51547ccec8f745a2680398bf7",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -7567,7 +7575,7 @@
       "lines": 31,
       "sha256": "c4b6f3b61d4d7a8bbaac70dc29ca8d87ec31a0cdec3533b74f5b88f089914d41",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -7578,7 +7586,7 @@
       "lines": 200,
       "sha256": "ae43e1355f235da9e982c98d7adeea085ad87d3a3a3f4f8bc83620f4fbd7254f",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 3,
       "fanIn": 0
     },
@@ -7589,7 +7597,7 @@
       "lines": 25,
       "sha256": "047e7018156bc7ab5b451fd0d8c82b4e097cfe75ddf83ce47139693f09292f86",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -7600,7 +7608,7 @@
       "lines": 120,
       "sha256": "68a64ded4c05b1659ff756d02d237e54b943e6e92df08fd215f7b6ba7f42136a",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 3,
       "fanIn": 0
     },
@@ -7611,7 +7619,7 @@
       "lines": 51,
       "sha256": "d72c6622eab834fb379f14bed558aad680bce8ccaeda2000dc5c0faa25bf1996",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -7622,7 +7630,7 @@
       "lines": 45,
       "sha256": "3da882879b62d89cd88189490631db994d43fefbd9a32747ae17360542335dda",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -7633,7 +7641,7 @@
       "lines": 12,
       "sha256": "d99016a3da2533a5ace6b13220d2eaa7443396692b66d541214795b58a90ff03",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -7644,7 +7652,7 @@
       "lines": 3,
       "sha256": "4bbb7cd08392b521ff7ba7db4387162fc15aa6af1f400ff6c9e460485b2457f5",
       "skipReason": null,
-      "role": null,
+      "role": "type declarations",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -7688,7 +7696,7 @@
       "lines": 354,
       "sha256": "3c869fdd9f1f5b3a8d3203378cc6d72f7ee3415b921e26d5680ba7460c88eae1",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 10,
       "fanIn": 0
     },
@@ -7699,7 +7707,7 @@
       "lines": 146,
       "sha256": "e8df1cd5256daa77e3e3dac79392c374fd196b4f9868259792ade4a8e2942824",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 2,
       "fanIn": 0
     },
@@ -7710,7 +7718,7 @@
       "lines": 75,
       "sha256": "23ea9e471476b48356ba4b95ab3655fe7363560fa7dcee16bc5d99aed43b4ba5",
       "skipReason": null,
-      "role": null,
+      "role": "test",
       "fanOut": 5,
       "fanIn": 0
     },
@@ -7732,7 +7740,7 @@
       "lines": 37,
       "sha256": "310ae30ebeb703dec4d7058796721a96360f1ac8aa0d5943c88dfeb462db57c1",
       "skipReason": null,
-      "role": null,
+      "role": "package script",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -7743,7 +7751,7 @@
       "lines": 40,
       "sha256": "39ce9718f885ad67ec98218771588b90b968d9b3d323d707102233d1c59310a0",
       "skipReason": null,
-      "role": null,
+      "role": "package script",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -7754,7 +7762,7 @@
       "lines": 61,
       "sha256": "05eaad69cca59119e9d526a4d3a157b85d52cdd4f823118c245c2610520d5754",
       "skipReason": null,
-      "role": null,
+      "role": "package script",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -7765,7 +7773,7 @@
       "lines": 54,
       "sha256": "58cdb611b20d4f069da84b69e377e2a4e0003fb444e30774ebea52534812359a",
       "skipReason": null,
-      "role": null,
+      "role": "package script",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -7787,7 +7795,7 @@
       "lines": 129,
       "sha256": "d3b7de27de7718bb119f9cfa5798d90e04db05378f0b957cab3633fbdc1eeaf6",
       "skipReason": null,
-      "role": null,
+      "role": "package script",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -7798,7 +7806,7 @@
       "lines": 66,
       "sha256": "003c5bd8fd40771664b2d447e757b4dfe766eef6a8c3a725e0d5fe5e3e9af18d",
       "skipReason": null,
-      "role": null,
+      "role": "package script",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -7820,7 +7828,7 @@
       "lines": 215,
       "sha256": "b9c46fddbc449964aded65da52b7d7505b516fa757fa3496ba22b70eb3ad8ac8",
       "skipReason": null,
-      "role": null,
+      "role": "package script",
       "fanOut": 0,
       "fanIn": 0
     },
@@ -7831,7 +7839,7 @@
       "lines": 245,
       "sha256": "3f06199124869ebff5e56a1fe131823c747e8b7a2e0cc5e53e89b6a0c6675fe2",
       "skipReason": null,
-      "role": null,
+      "role": "package script",
       "fanOut": 1,
       "fanIn": 0
     },
@@ -7875,7 +7883,7 @@
       "lines": 149,
       "sha256": "0dbfeb664c659c34d89a5542023fff6b9eaceb385165a8fa9712e7e72d6a5295",
       "skipReason": null,
-      "role": null,
+      "role": "test setup",
       "fanOut": 6,
       "fanIn": 0
     },
@@ -7886,7 +7894,7 @@
       "lines": 100,
       "sha256": "be32b1c9e8dcf0233985b38ee9a6d4d3dae9f9f31bda80db766d63f08d088a30",
       "skipReason": null,
-      "role": null,
+      "role": "config",
       "fanOut": 0,
       "fanIn": 0
     }

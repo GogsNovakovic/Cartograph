@@ -10,7 +10,15 @@ const HIDDEN_HANDLE = { opacity: 0, width: 1, height: 1, minWidth: 0, minHeight:
 // When something is selected, everything it doesn't touch drops back.
 const DIMMED = 0.25;
 
-type Counts = { label: string; directory: string; files: number; fanIn: number; fanOut: number };
+type Counts = {
+  label: string;
+  directory: string;
+  files: number;
+  fanIn: number;
+  fanOut: number;
+  // Files of the active rail category in this folder; null with none active.
+  matched: number | null;
+};
 
 export type FolderData = Counts & { group: number; dimmed: boolean };
 export type FolderNode = Node<FolderData, "folder">;
@@ -20,6 +28,9 @@ export type RowData = {
   name: string;
   path: string;
   fanIn: number;
+  hue: number | null;
+  // Of the active rail category, or no category is active.
+  matched: boolean;
   state: "selected" | "lit" | "dimmed" | "plain";
 };
 
@@ -33,9 +44,21 @@ export type PanelData = Counts & {
 };
 export type PanelNode = Node<PanelData, "panel">;
 
-function Stats({ files, fanIn, fanOut }: Pick<Counts, "files" | "fanIn" | "fanOut">) {
+// The file's kind, in the same colour as its category in the rail.
+export function KindSwatch({ hue }: { hue: number | null }) {
+  return (
+    <span
+      aria-hidden
+      className="size-2 shrink-0 rounded-[2px]"
+      style={{ background: hue === null ? "var(--muted)" : `var(--kind-${hue})` }}
+    />
+  );
+}
+
+function Stats({ files, fanIn, fanOut, matched }: Pick<Counts, "files" | "fanIn" | "fanOut" | "matched">) {
   return (
     <div className="truncate text-[11px] leading-4 text-muted tabular-nums">
+      {matched !== null && <span className="text-text">{matched} match · </span>}
       {files} files · in {fanIn} · out {fanOut}
     </div>
   );
@@ -84,9 +107,10 @@ export function PanelBox({ data }: NodeProps<PanelNode>) {
             "relative flex cursor-pointer items-center gap-2 px-2 " +
             (row.state === "selected" ? "bg-accent text-accent-text" : "hover:bg-raised")
           }
-          style={{ height: ROW_HEIGHT, opacity: row.state === "dimmed" ? DIMMED : 1 }}
+          style={{ height: ROW_HEIGHT, opacity: row.state === "dimmed" || (!row.matched && row.state !== "selected") ? DIMMED : 1 }}
         >
           <Handle type="target" position={Position.Left} id={`in:${row.file}`} style={HIDDEN_HANDLE} isConnectable={false} />
+          <KindSwatch hue={row.hue} />
           <span className="min-w-0 flex-1 truncate font-mono text-[12px]">{row.name}</span>
           <span
             className={

@@ -21,13 +21,16 @@ function summarise(result: ParseResult): string {
   const line = (text = "") => out.push(text);
 
   line(`root      ${result.root}`);
-  line(`adapter   ${result.adapter}`);
+  line(`adapters  ${result.adapters.length > 0 ? result.adapters.join(", ") : "none"}`);
   line();
   line(`files     found ${files.found}   parsed ${files.parsed}   skipped ${files.skipped}`);
   for (const file of result.files) {
     if (file.skipReason) line(`  skipped ${file.path} — ${file.skipReason}`);
   }
   line(`folders   ${new Set(result.files.map((f) => f.folder)).size} distinct`);
+  const roled = result.files.filter((f) => f.role !== null);
+  line(`roles     ${roled.length} files reached by convention`);
+  for (const [role, n] of countBy(roled, (f) => f.role ?? "")) line(`  ${n} × ${role}`);
   line(`excluded directories ${result.excludedDirectories.length}`);
   for (const [reason, n] of countBy(result.excludedDirectories, (d) => d.reason)) {
     line(`  ${n} × ${reason}`);

@@ -1,7 +1,6 @@
 import path from "node:path";
-import { CategoryRail } from "@/components/category-rail";
-import { MapCanvas } from "@/components/map/canvas";
-import { Workspace } from "@/components/workspace";
+import { AnalysisView } from "@/components/analysis-view";
+import { findInsights } from "@/lib/map/graph";
 import { buildMapModel } from "@/lib/map/model";
 import { readParseResult } from "@/parser/read";
 
@@ -10,5 +9,5 @@ import { readParseResult } from "@/parser/read";
 // are stored. Read and validated at build time; a bad file fails the build.
 export default function PreviewPage() {
   const model = buildMapModel(readParseResult(path.join(process.cwd(), "data/excalidraw.json")));
-  return <Workspace rail={<CategoryRail categories={model.categories} />} map={<MapCanvas model={model} />} />;
+  return <AnalysisView model={model} insights={findInsights(model.files, model.links)} />;
 }

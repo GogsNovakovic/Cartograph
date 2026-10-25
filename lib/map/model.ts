@@ -13,6 +13,13 @@ export type MapFile = {
   group: number;
   fanIn: number;
   fanOut: number;
+  lines: number | null;
+  // What a framework or tool reaches the file as, from the parse result.
+  role: string | null;
+  // The category it belongs to in the rail.
+  kind: string;
+  // Which kind colour the file carries, or null for a kind left grey.
+  hue: number | null;
 };
 
 export type MapGroup = {
@@ -26,7 +33,8 @@ export type MapGroup = {
   fanOut: number;
 };
 
-export type Category = { name: string; count: number };
+// A kind of file, by extension. `hue` indexes the kind colours; null is grey.
+export type Category = { name: string; count: number; hue: number | null };
 
 export type MapModel = {
   files: MapFile[];
@@ -38,7 +46,17 @@ export type MapModel = {
   categories: Category[];
 };
 
-export const UNLABELLED = "Unlabelled";
+// Colour separates a handful of kinds and no more: the most common get a
+// hue, the long tail stays grey. Must match the --kind-N tokens.
+export const KIND_HUES = 4;
+
+// Kind is the extension, read straight off the path, so it's a fact about the
+// file rather than a judgement. "Makefile" or ".eslintrc" has none.
+export function kindOf(path: string): string {
+  const base = path.slice(path.lastIndexOf("/") + 1);
+  const dot = base.lastIndexOf(".");
+  return dot <= 0 ? "no extension" : base.slice(dot);
+}
 
 export function buildMapModel(result: ParseResult): MapModel {
   const { threshold, groups: folded } = fold(result.files);
@@ -49,6 +67,13 @@ export function buildMapModel(result: ParseResult): MapModel {
   directories.forEach((dir, g) => {
     for (const path of folded.get(dir) ?? []) groupOf.set(path, g);
   });
+
+  const byKind = new Map<string, number>();
+  for (const file of result.files) byKind.set(kindOf(file.path), (byKind.get(kindOf(file.path)) ?? 0) + 1);
+  const categories: Category[] = [...byKind.entries()]
+    .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
+    .map(([name, count], i) => ({ name, count, hue: i < KIND_HUES ? i : null }));
+  const hueOf = new Map(categories.map((category) => [category.name, category.hue]));
 
   const files: MapFile[] = [...result.files]
     .sort((a, b) => (a.path < b.path ? -1 : 1))
@@ -62,6 +87,10 @@ export function buildMapModel(result: ParseResult): MapModel {
         group,
         fanIn: file.fanIn,
         fanOut: file.fanOut,
+        lines: file.lines,
+        role: file.role,
+        kind: kindOf(file.path),
+        hue: hueOf.get(kindOf(file.path)) ?? null,
       };
     });
   const indexOf = new Map(files.map((file, i) => [file.path, i]));
@@ -102,17 +131,6 @@ export function buildMapModel(result: ParseResult): MapModel {
     fanIn: importers[g].size,
     fanOut: imported[g].size,
   }));
-
-  // Categories are what the framework adapter says a file is. A file it says
-  // nothing about is counted as unlabelled rather than guessed at.
-  const byRole = new Map<string, number>();
-  for (const file of result.files) {
-    const name = file.role ?? UNLABELLED;
-    byRole.set(name, (byRole.get(name) ?? 0) + 1);
-  }
-  const categories = [...byRole.entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count || (a.name < b.name ? -1 : 1));
 
   return { files, groups, links, threshold, categories };
 }

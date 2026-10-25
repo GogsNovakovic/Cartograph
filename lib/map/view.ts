@@ -70,7 +70,9 @@ export function slotKey(slot: Slot): string {
   return `${slot.node}|${slot.slot}`;
 }
 
-export function buildView(model: MapModel, open: ReadonlySet<number>): View {
+// `pinned` is a selected file: if its panel is open but too long to list it,
+// it takes the last row, so a selection is always something on screen.
+export function buildView(model: MapModel, open: ReadonlySet<number>, pinned: number | null = null): View {
   const sized = model.groups.map((group, g) => {
     const id = group.directory;
     if (!open.has(g)) {
@@ -78,11 +80,14 @@ export function buildView(model: MapModel, open: ReadonlySet<number>): View {
     }
     // Showing 14 rows and "1 more" would spend a row saying less than the row.
     const rows = group.files.length <= MAX_ROWS + 1 ? group.files : group.files.slice(0, MAX_ROWS);
+    if (pinned !== null && model.files[pinned].group === g && !rows.includes(pinned)) {
+      rows[rows.length - 1] = pinned;
+    }
     const hidden = group.files.length - rows.length;
     const longest = Math.max(...rows.map((f) => model.files[f].name.length));
     const width = Math.min(
       PANEL_MAX_WIDTH,
-      Math.max(PANEL_MIN_WIDTH, folderWidth(group.label), Math.ceil(longest * CHAR) + 64),
+      Math.max(PANEL_MIN_WIDTH, folderWidth(group.label), Math.ceil(longest * CHAR) + 80),
     );
     const height = HEADER_HEIGHT + (rows.length + (hidden > 0 ? 1 : 0)) * ROW_HEIGHT + 4;
     return { kind: "panel" as const, id, group: g, width, height, rows, hidden };

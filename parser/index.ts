@@ -1,7 +1,7 @@
 import { realpathSync, statSync } from "node:fs";
 import path from "node:path";
 import { Project, ts } from "ts-morph";
-import { pickAdapter } from "./adapters.ts";
+import { readRoles } from "./adapters.ts";
 import { degrees } from "./graph.ts";
 import { readImports } from "./imports.ts";
 import { Resolver } from "./resolve.ts";
@@ -16,7 +16,7 @@ import {
   type ParseResult,
   type ReasonGroup,
 } from "./types.ts";
-import { walkRepository } from "./walk.ts";
+import { toRelative, walkRepository } from "./walk.ts";
 
 export * from "./types.ts";
 
@@ -33,7 +33,11 @@ export function parseRepository(directory: string): ParseResult {
 
   const walk = walkRepository(root);
   const paths = walk.files.map((file) => file.path);
-  const adapter = pickAdapter({ root, paths });
+  const { adapters, roles } = readRoles({
+    root,
+    paths,
+    packageJsons: walk.packageJsonPaths.map((p) => toRelative(root, p)),
+  });
   const resolver = new Resolver(root, paths, walk.packageJsonPaths);
 
   // Parsing only: no lib files, no following imports into files we didn't
@@ -131,7 +135,7 @@ export function parseRepository(directory: string): ParseResult {
     lines: file.lines,
     sha256: file.sha256,
     skipReason: file.skipReason,
-    role: adapter.roleOf(file.path),
+    role: roles.get(file.path) ?? null,
     fanOut: degree.get(file.path)?.fanOut ?? 0,
     fanIn: degree.get(file.path)?.fanIn ?? 0,
   }));
@@ -140,7 +144,7 @@ export function parseRepository(directory: string): ParseResult {
   return {
     schemaVersion: SCHEMA_VERSION,
     root,
-    adapter: adapter.name,
+    adapters,
     files,
     edges,
     coverage: {

@@ -25,6 +25,11 @@
      the selection, and what flows out of it. */
   --incoming: #1e8a4a;
   --outgoing: #b26b00;
+  /* Kind, the only other colour: one hue per common file extension. */
+  --kind-0: #7464e8;
+  --kind-1: #b44fc8;
+  --kind-2: #d4506f;
+  --kind-3: #1f948e;
   /* Clerk's primary buttons: neutral rather than accent, as in Clerk's own
      default look. */
   --clerk-primary: #2f3037;
@@ -44,6 +49,10 @@
     --accent-text: #0f1012;
     --incoming: #3dbb73;
     --outgoing: #e4a23a;
+    --kind-0: #9488f5;
+    --kind-1: #cf7ae0;
+    --kind-2: #ec7891;
+    --kind-3: #3fbab3;
     --clerk-primary: #2a2b30;
     --clerk-primary-text: #ffffff;
   }
@@ -61,6 +70,10 @@
   --accent-text: #0f1012;
   --incoming: #3dbb73;
   --outgoing: #e4a23a;
+  --kind-0: #9488f5;
+  --kind-1: #cf7ae0;
+  --kind-2: #ec7891;
+  --kind-3: #3fbab3;
   --clerk-primary: #2a2b30;
   --clerk-primary-text: #ffffff;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, type Dispatch, type SetStateAction } from "react";
 import {
   MarkerType,
   ReactFlow,
@@ -19,28 +19,43 @@ type MapNode = FolderNode | PanelNode;
 
 // `opened` is the panel the last click opened, kept in the same update as
 // the open set, so the refit always reads the state after the change.
-type OpenState = { groups: ReadonlySet<number>; opened: number | null };
+export type OpenState = { groups: ReadonlySet<number>; opened: number | null };
 
 // What's selected: one file, or a whole folder. Clicking a folded node opens
 // it and selects the folder in the same click; a row inside narrows it to
 // that file.
-type Selection = { kind: "file"; file: number } | { kind: "folder"; group: number } | null;
+export type Selection = { kind: "file"; file: number } | { kind: "folder"; group: number } | null;
 
-export function MapCanvas({ model }: { model: MapModel }) {
+// The canvas holds no state of its own: the rail and the detail pane select
+// files too, so open folders, selection and the active category live above.
+type CanvasProps = {
+  model: MapModel;
+  open: OpenState;
+  setOpen: Dispatch<SetStateAction<OpenState>>;
+  selected: Selection;
+  setSelected: Dispatch<SetStateAction<Selection>>;
+  // A rail category: files of any other kind dim. Null shows everything.
+  category: string | null;
+};
+
+export function MapCanvas(props: CanvasProps) {
   return (
     <ReactFlowProvider>
-      <Canvas model={model} />
+      <Canvas {...props} />
     </ReactFlowProvider>
   );
 }
 
-function Canvas({ model }: { model: MapModel }) {
-  const [open, setOpen] = useState<OpenState>({ groups: new Set(), opened: null });
-  const [selected, setSelected] = useState<Selection>(null);
-  const view = useMemo(() => buildView(model, open.groups), [model, open.groups]);
+function Canvas({ model, open, setOpen, selected, setSelected, category }: CanvasProps) {
+  const pinned = selected?.kind === "file" ? selected.file : null;
+  const view = useMemo(() => buildView(model, open.groups, pinned), [model, open.groups, pinned]);
   const highlight = useMemo(() => highlightOf(model, view, selected), [model, view, selected]);
-  const nodes = useMemo(() => toNodes(model, view, selected, highlight), [model, view, selected, highlight]);
-  const edges = useMemo(() => toEdges(view, highlight), [view, highlight]);
+  const filter = useMemo(() => filterOf(model, view, category), [model, view, category]);
+  const nodes = useMemo(
+    () => toNodes(model, view, selected, highlight, filter),
+    [model, view, selected, highlight, filter],
+  );
+  const edges = useMemo(() => toEdges(view, highlight, filter), [view, highlight, filter]);
 
   const { fitView, getViewport } = useReactFlow();
   const store = useStoreApi();
@@ -158,7 +173,40 @@ function highlightOf(model: MapModel, view: View, selected: Selection): Highligh
   return { lit, incoming, outgoing };
 }
 
-function toNodes(model: MapModel, view: View, selected: Selection, highlight: Highlight): MapNode[] {
+// The active category: which files match, how many per folder, and which
+// edge ends on screen hold at least one match. Null when none is active.
+type Filter = {
+  matches: (file: number) => boolean;
+  counts: readonly number[];
+  slots: ReadonlySet<string>;
+} | null;
+
+function filterOf(model: MapModel, view: View, category: string | null): Filter {
+  if (category === null) return null;
+  const matches = (file: number) => model.files[file].kind === category;
+  const counts = model.groups.map((group) => group.files.filter(matches).length);
+  const slots = new Set<string>();
+  for (const box of view.boxes) {
+    if (box.kind === "folder") {
+      if (counts[box.group] > 0) slots.add(slotKey({ node: box.id, slot: "node" }));
+      continue;
+    }
+    for (const file of box.rows) if (matches(file)) slots.add(slotKey({ node: box.id, slot: file }));
+    const shown = new Set(box.rows);
+    if (model.groups[box.group].files.some((file) => !shown.has(file) && matches(file))) {
+      slots.add(slotKey({ node: box.id, slot: "more" }));
+    }
+  }
+  return { matches, counts, slots };
+}
+
+function toNodes(
+  model: MapModel,
+  view: View,
+  selected: Selection,
+  highlight: Highlight,
+  filter: Filter,
+): MapNode[] {
   const selectedFile = selected?.kind === "file" ? selected.file : null;
   const selectedFolder = selected?.kind === "folder" ? selected.group : null;
   return view.boxes.map((box): MapNode => {
@@ -169,13 +217,16 @@ function toNodes(model: MapModel, view: View, selected: Selection, highlight: Hi
       files: group.files.length,
       fanIn: group.fanIn,
       fanOut: group.fanOut,
+      matched: filter === null ? null : filter.counts[box.group],
       group: box.group,
     };
+    // A category dims a folder only when none of its files are that kind.
+    const unmatched = filter !== null && filter.counts[box.group] === 0;
     const placed = { id: box.id, position: { x: box.x, y: box.y }, width: box.width, height: box.height };
     const isLit = (slot: Slot["slot"]) => highlight?.lit.has(slotKey({ node: box.id, slot })) ?? false;
 
     if (box.kind === "folder") {
-      return { ...placed, type: "folder", data: { ...counts, dimmed: highlight !== null && !isLit("node") } };
+      return { ...placed, type: "folder", data: { ...counts, dimmed: unmatched || (highlight !== null && !isLit("node")) } };
     }
     // A selected folder keeps all of its own rows bright.
     const isSelected = box.group === selectedFolder;
@@ -184,6 +235,8 @@ function toNodes(model: MapModel, view: View, selected: Selection, highlight: Hi
       name: model.files[file].name,
       path: model.files[file].path,
       fanIn: model.files[file].fanIn,
+      hue: model.files[file].hue,
+      matched: filter === null || filter.matches(file),
       state:
         file === selectedFile
           ? "selected"
@@ -201,10 +254,12 @@ function toNodes(model: MapModel, view: View, selected: Selection, highlight: Hi
       data: {
         ...counts,
         selected: isSelected,
-        dimmed: highlight !== null && !touched,
+        dimmed: unmatched || (highlight !== null && !touched),
         rows,
         hidden: box.hidden,
-        moreDimmed: highlight !== null && !moreLit,
+        moreDimmed:
+          (highlight !== null && !moreLit) ||
+          (filter !== null && !filter.slots.has(slotKey({ node: box.id, slot: "more" }))),
       },
     };
   });
@@ -214,12 +269,14 @@ function handleOf(direction: "in" | "out", slot: Slot["slot"]): string {
   return slot === "node" ? direction : `${direction}:${slot}`;
 }
 
-function toEdges(view: View, highlight: Highlight): Edge[] {
+function toEdges(view: View, highlight: Highlight, filter: Filter): Edge[] {
   return view.edges.map((edge) => {
     const into = highlight?.incoming.has(edge.id) ?? false;
     const out = highlight?.outgoing.has(edge.id) ?? false;
     const colour = into ? "var(--incoming)" : out ? "var(--outgoing)" : "var(--muted)";
-    const opacity = highlight === null ? 0.45 : into || out ? 1 : 0.08;
+    // Under a category, an edge stays only if both of its ends hold a match.
+    const kept = filter === null || (filter.slots.has(slotKey(edge.source)) && filter.slots.has(slotKey(edge.target)));
+    const opacity = into || out ? 1 : highlight === null && kept ? 0.45 : 0.08;
     return {
       id: edge.id,
       source: edge.source.node,
