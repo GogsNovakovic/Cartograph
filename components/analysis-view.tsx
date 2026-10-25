@@ -17,6 +17,10 @@ export function AnalysisView({ model, insights }: { model: MapModel; insights: I
   const [selected, setSelected] = useState<Selection>(null);
   const [category, setCategory] = useState<string | null>(null);
   const graph = useMemo(() => adjacency(model.files.length, model.links), [model]);
+  const typeOnly = useMemo(
+    () => new Set(model.links.filter((_, i) => model.typeOnly[i]).map(([source, target]) => `${source}>${target}`)),
+    [model],
+  );
 
   // Selecting a file from a list opens its folder, so the selection is
   // something on the map, and refits if that panel is off screen.
@@ -48,7 +52,7 @@ export function AnalysisView({ model, insights }: { model: MapModel; insights: I
           category={category}
         />
       }
-      detail={<DetailPane model={model} graph={graph} selected={selected} onSelect={selectFile} />}
+      detail={<DetailPane model={model} graph={graph} typeOnly={typeOnly} selected={selected} onSelect={selectFile} />}
     />
   );
 }

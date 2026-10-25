@@ -42,6 +42,9 @@ export type MapModel = {
   // Distinct [importer, imported] file index pairs. Duplicate imports of the
   // same file, of any kind, are one link, as they are for fan-in.
   links: [number, number][];
+  // typeOnly[i]: every statement making links[i] is a type import, so the
+  // connection disappears at runtime.
+  typeOnly: boolean[];
   threshold: number;
   categories: Category[];
 };
@@ -95,8 +98,9 @@ export function buildMapModel(result: ParseResult): MapModel {
     });
   const indexOf = new Map(files.map((file, i) => [file.path, i]));
 
-  const seen = new Set<string>();
+  const seen = new Map<string, number>();
   const links: [number, number][] = [];
+  const typeOnly: boolean[] = [];
   for (const edge of result.edges) {
     const source = indexOf.get(edge.source);
     const target = indexOf.get(edge.target);
@@ -106,9 +110,15 @@ export function buildMapModel(result: ParseResult): MapModel {
       throw new Error(`edge ${edge.source} -> ${edge.target} names a file that isn't in the result`);
     }
     const key = `${source}>${target}`;
-    if (source === target || seen.has(key)) continue;
-    seen.add(key);
+    if (source === target) continue;
+    const at = seen.get(key);
+    if (at !== undefined) {
+      typeOnly[at] = typeOnly[at] && edge.typeOnly;
+      continue;
+    }
+    seen.set(key, links.length);
     links.push([source, target]);
+    typeOnly.push(edge.typeOnly);
   }
 
   const importers = directories.map(() => new Set<number>());
@@ -132,5 +142,5 @@ export function buildMapModel(result: ParseResult): MapModel {
     fanOut: imported[g].size,
   }));
 
-  return { files, groups, links, threshold, categories };
+  return { files, groups, links, typeOnly, threshold, categories };
 }

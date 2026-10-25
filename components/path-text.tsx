@@ -1,14 +1,12 @@
-// A file path cut from the left when it doesn't fit, so the file name, the
-// part that tells paths apart, is the part that stays. The full path is in
-// the title.
+// A file path that, when it doesn't fit, gives up its folder before its
+// file name: the name is what tells paths apart. The full path is in the
+// title.
 export function PathText({ path, className = "" }: { path: string; className?: string }) {
+  const slash = path.lastIndexOf("/") + 1;
   return (
-    <span
-      title={path}
-      dir="rtl"
-      className={"block min-w-0 truncate text-left font-mono text-[12px] " + className}
-    >
-      <bdi>{path}</bdi>
+    <span title={path} className={"flex min-w-0 font-mono text-[12px] " + className}>
+      <span className="min-w-0 truncate text-muted">{path.slice(0, slash)}</span>
+      <span className="shrink-0">{path.slice(slash)}</span>
     </span>
   );
 }
