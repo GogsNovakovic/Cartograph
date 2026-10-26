@@ -1,6 +1,11 @@
+import Link from "next/link";
 import { Suspense } from "react";
-import { listAnalyses, type AnalysisStatus, type AnalysisSummary } from "@/lib/analyses";
+import { AnalyseForm } from "@/components/analyse-form";
+import { AnalysisStatus } from "@/components/analysis-status";
+import { LiveStatus } from "@/components/live-status";
+import { listAnalyses, type AnalysisSummary } from "@/lib/analyses";
 import { getCurrentOrganization } from "@/lib/organization";
+import { analysisPath } from "@/lib/routes";
 
 export default function DashboardPage() {
   return (
@@ -32,6 +37,7 @@ async function Dashboard() {
           </span>
         )}
       </header>
+      <AnalyseForm />
       {!result.ok ? (
         // Said plainly rather than shown as an empty list: an empty list here
         // would claim the organization has no analyses.
@@ -66,71 +72,45 @@ function AnalysisTable({ analyses }: { analyses: AnalysisSummary[] }) {
           </tr>
         </thead>
         <tbody>
-          {analyses.map((analysis) => (
-            <tr key={analysis.id} className="border-b border-border last:border-b-0">
-              <td className="px-3 py-1.5 align-top">
-                <span className="font-mono text-[12.5px]">
-                  <span className="text-muted">{analysis.repository.owner}/</span>
-                  {analysis.repository.name}
-                </span>
-                {analysis.failureReason && (
-                  <p className="mt-0.5 text-[12px] text-muted">{analysis.failureReason}</p>
-                )}
-              </td>
-              <td className="px-3 py-1.5 align-top whitespace-nowrap">
-                <Status status={analysis.status} />
-              </td>
-              <td className="px-3 py-1.5 align-top font-mono text-[12px] whitespace-nowrap text-muted tabular-nums">
-                <Timestamp value={analysis.createdAt} />
-              </td>
-              <td className="px-3 py-1.5 text-right align-top font-mono text-[12px] whitespace-nowrap text-muted tabular-nums">
-                {analysis.completedAt && (
-                  <Duration from={analysis.createdAt} to={analysis.completedAt} />
-                )}
-              </td>
-            </tr>
-          ))}
+          {analyses.map((analysis) => {
+            const started = analysis.startedAt ?? analysis.createdAt;
+            const unfinished = analysis.status === "queued" || analysis.status === "parsing";
+            return (
+              <tr key={analysis.id} className="border-b border-border last:border-b-0">
+                <td className="px-3 py-1.5 align-top">
+                  <Link href={analysisPath(analysis.id)} className="font-mono text-[12.5px] hover:underline">
+                    <span className="text-muted">{analysis.repository.owner}/</span>
+                    {analysis.repository.name}
+                  </Link>
+                  {analysis.failureReason && (
+                    <p className="mt-0.5 text-[12px] text-muted">{analysis.failureReason}</p>
+                  )}
+                </td>
+                <td className="px-3 py-1.5 align-top whitespace-nowrap">
+                  {/* Only an unfinished run can still change, so only those
+                      rows subscribe. */}
+                  {unfinished ? (
+                    <LiveStatus
+                      analysisId={analysis.id}
+                      rendered={{ status: analysis.status, stage: analysis.stage, message: analysis.stageMessage }}
+                      stale={analysis.stale}
+                    />
+                  ) : (
+                    <AnalysisStatus status={analysis.status} />
+                  )}
+                </td>
+                <td className="px-3 py-1.5 align-top font-mono text-[12px] whitespace-nowrap text-muted tabular-nums">
+                  <Timestamp value={started} />
+                </td>
+                <td className="px-3 py-1.5 text-right align-top font-mono text-[12px] whitespace-nowrap text-muted tabular-nums">
+                  {analysis.completedAt && <Duration from={started} to={analysis.completedAt} />}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
-  );
-}
-
-const STATUS_LABELS: Record<AnalysisStatus, string> = {
-  queued: "Queued",
-  parsing: "Parsing",
-  complete: "Complete",
-  failed: "Failed",
-};
-
-// State is told by shape, not colour: colour is reserved for edge direction
-// and file kind. Filled is done, half is in progress, hollow hasn't started,
-// crossed stopped.
-function Status({ status }: { status: AnalysisStatus }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <svg viewBox="0 0 10 10" className="size-2.5 shrink-0" aria-hidden>
-        {status === "complete" && <circle cx="5" cy="5" r="4.5" fill="currentColor" />}
-        {status === "parsing" && (
-          <>
-            <circle cx="5" cy="5" r="4" fill="none" stroke="currentColor" />
-            <path d="M5 0.5 A4.5 4.5 0 0 1 5 9.5 Z" fill="currentColor" />
-          </>
-        )}
-        {status === "queued" && (
-          <circle cx="5" cy="5" r="4" fill="none" stroke="currentColor" className="text-muted" />
-        )}
-        {status === "failed" && (
-          <>
-            <circle cx="5" cy="5" r="4" fill="none" stroke="currentColor" />
-            <path d="M3.2 3.2 L6.8 6.8 M6.8 3.2 L3.2 6.8" stroke="currentColor" />
-          </>
-        )}
-      </svg>
-      <span className={status === "queued" ? "text-muted" : undefined}>
-        {STATUS_LABELS[status]}
-      </span>
-    </span>
   );
 }
 

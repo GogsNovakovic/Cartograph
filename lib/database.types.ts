@@ -16,30 +16,54 @@ export type Database = {
     Tables: {
       analyses: {
         Row: {
+          adapters: string[] | null
+          commit_sha: string | null
           completed_at: string | null
+          coverage: Json | null
           created_at: string
+          excluded_directories: Json | null
           failure_reason: string | null
           id: string
           organization_id: string
           project_id: string
+          schema_version: number | null
+          stage: Database["public"]["Enums"]["analysis_stage"] | null
+          stage_message: string | null
+          started_at: string | null
           status: Database["public"]["Enums"]["analysis_status"]
         }
         Insert: {
+          adapters?: string[] | null
+          commit_sha?: string | null
           completed_at?: string | null
+          coverage?: Json | null
           created_at?: string
+          excluded_directories?: Json | null
           failure_reason?: string | null
           id?: string
           organization_id: string
           project_id: string
+          schema_version?: number | null
+          stage?: Database["public"]["Enums"]["analysis_stage"] | null
+          stage_message?: string | null
+          started_at?: string | null
           status?: Database["public"]["Enums"]["analysis_status"]
         }
         Update: {
+          adapters?: string[] | null
+          commit_sha?: string | null
           completed_at?: string | null
+          coverage?: Json | null
           created_at?: string
+          excluded_directories?: Json | null
           failure_reason?: string | null
           id?: string
           organization_id?: string
           project_id?: string
+          schema_version?: number | null
+          stage?: Database["public"]["Enums"]["analysis_stage"] | null
+          stage_message?: string | null
+          started_at?: string | null
           status?: Database["public"]["Enums"]["analysis_status"]
         }
         Relationships: [
@@ -64,28 +88,34 @@ export type Database = {
           analysis_id: string
           id: string
           kind: Database["public"]["Enums"]["edge_kind"]
+          line: number
           organization_id: string
           source_file_id: string
           specifier: string
           target_file_id: string
+          type_only: boolean
         }
         Insert: {
           analysis_id: string
           id?: string
           kind: Database["public"]["Enums"]["edge_kind"]
+          line: number
           organization_id: string
           source_file_id: string
           specifier: string
           target_file_id: string
+          type_only: boolean
         }
         Update: {
           analysis_id?: string
           id?: string
           kind?: Database["public"]["Enums"]["edge_kind"]
+          line?: number
           organization_id?: string
           source_file_id?: string
           specifier?: string
           target_file_id?: string
+          type_only?: boolean
         }
         Relationships: [
           {
@@ -222,23 +252,41 @@ export type Database = {
       files: {
         Row: {
           analysis_id: string
+          bytes: number
+          fan_in: number
+          fan_out: number
+          folder: string
           id: string
+          lines: number | null
           organization_id: string
           path: string
+          sha256: string | null
           skip_reason: string | null
         }
         Insert: {
           analysis_id: string
+          bytes: number
+          fan_in: number
+          fan_out: number
+          folder: string
           id?: string
+          lines?: number | null
           organization_id: string
           path: string
+          sha256?: string | null
           skip_reason?: string | null
         }
         Update: {
           analysis_id?: string
+          bytes?: number
+          fan_in?: number
+          fan_out?: number
+          folder?: string
           id?: string
+          lines?: number | null
           organization_id?: string
           path?: string
+          sha256?: string | null
           skip_reason?: string | null
         }
         Relationships: [
@@ -401,6 +449,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      analysis_stage: "fetching" | "selecting" | "parsing" | "storing"
       analysis_status: "queued" | "parsing" | "complete" | "failed"
       edge_kind: "import" | "re_export" | "dynamic_import" | "require"
       file_role_source: "convention" | "model"
@@ -531,6 +580,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      analysis_stage: ["fetching", "selecting", "parsing", "storing"],
       analysis_status: ["queued", "parsing", "complete", "failed"],
       edge_kind: ["import", "re_export", "dynamic_import", "require"],
       file_role_source: ["convention", "model"],

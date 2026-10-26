@@ -16,7 +16,7 @@ import {
   type ParseResult,
   type ReasonGroup,
 } from "./types.ts";
-import { toRelative, walkRepository } from "./walk.ts";
+import { toRelative, walkRepository, type WalkResult } from "./walk.ts";
 
 export * from "./types.ts";
 
@@ -26,12 +26,23 @@ function emptyCounts(): OutcomeCounts {
   return { total: 0, resolved: 0, external: 0, excluded: 0, unresolved: 0 };
 }
 
-export function parseRepository(directory: string): ParseResult {
+// Choosing and reading the files is separate from parsing them, so a caller
+// can report the two as stages. Both are synchronous; split here, a caller can
+// do its own async work between them.
+export type Selection = { root: string; walk: WalkResult };
+
+export function selectFiles(directory: string): Selection {
   // Real path, so it compares equal to the real paths TypeScript resolves to.
   const root = realpathSync(path.resolve(directory));
   if (!statSync(root).isDirectory()) throw new Error(`Not a directory: ${root}`);
+  return { root, walk: walkRepository(root) };
+}
 
-  const walk = walkRepository(root);
+export function parseRepository(directory: string): ParseResult {
+  return parseSelection(selectFiles(directory));
+}
+
+export function parseSelection({ root, walk }: Selection): ParseResult {
   const paths = walk.files.map((file) => file.path);
   const { adapters, roles } = readRoles({
     root,

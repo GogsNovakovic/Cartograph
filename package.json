@@ -9,7 +9,8 @@
     "lint": "eslint",
     "db:push": "supabase db push --include-seed",
     "db:types": "supabase gen types typescript --linked --schema public > lib/database.types.ts",
-    "parse": "node parser/cli.ts"
+    "parse": "node parser/cli.ts",
+    "analyse": "node --env-file=.env.local --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON lib/pipeline/cli.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.17",
@@ -19,6 +20,7 @@
     "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "tar": "^7.5.22",
     "ts-morph": "^28.0.0"
   },
   "devDependencies": {

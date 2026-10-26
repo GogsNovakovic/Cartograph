@@ -5,3 +5,7 @@ export const SIGN_UP_PATH = "/sign-up";
 
 // Every sign-in method, and accepting an invitation, ends here.
 export const HOME_PATH = "/";
+
+export function analysisPath(analysisId: string): string {
+  return `/analyses/${analysisId}`;
+}

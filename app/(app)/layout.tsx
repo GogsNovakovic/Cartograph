@@ -1,6 +1,8 @@
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
+import { RealtimeProvider } from "@/components/realtime";
 import { ThemeControl } from "@/components/theme-control";
 import { Wordmark } from "@/components/wordmark";
+import { env } from "@/lib/env";
 import { HOME_PATH } from "@/lib/routes";
 
 // The shell every signed-in screen renders inside. The proxy has already
@@ -22,7 +24,11 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         <ThemeControl />
         <UserButton />
       </header>
-      <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+      <main className="flex min-h-0 flex-1 flex-col">
+        <RealtimeProvider url={env.supabaseUrl} publishableKey={env.supabasePublishableKey}>
+          {children}
+        </RealtimeProvider>
+      </main>
     </div>
   );
 }
