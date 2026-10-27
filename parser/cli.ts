@@ -21,6 +21,7 @@ function summarise(result: ParseResult): string {
   const line = (text = "") => out.push(text);
 
   line(`root      ${result.root}`);
+  line(`framework ${result.framework ?? "none"}`);
   line(`adapters  ${result.adapters.length > 0 ? result.adapters.join(", ") : "none"}`);
   line();
   line(`files     found ${files.found}   parsed ${files.parsed}   skipped ${files.skipped}`);
@@ -29,8 +30,10 @@ function summarise(result: ParseResult): string {
   }
   line(`folders   ${new Set(result.files.map((f) => f.folder)).size} distinct`);
   const roled = result.files.filter((f) => f.role !== null);
-  line(`roles     ${roled.length} files reached by convention`);
+  line(`roles     ${roled.length} files named, ${roled.filter((f) => f.entry).length} of them loaded by convention`);
   for (const [role, n] of countBy(roled, (f) => f.role ?? "")) line(`  ${n} × ${role}`);
+  line(`routes    ${result.routes.length}`);
+  for (const route of result.routes) line(`  ${route.method.padEnd(7)} ${route.path}  ${route.file}:${route.line}`);
   line(`excluded directories ${result.excludedDirectories.length}`);
   for (const [reason, n] of countBy(result.excludedDirectories, (d) => d.reason)) {
     line(`  ${n} × ${reason}`);

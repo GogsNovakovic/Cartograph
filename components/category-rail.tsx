@@ -1,8 +1,11 @@
 import { KindSwatch } from "@/components/map/nodes";
 import type { Category } from "@/lib/map/model";
 
-// Kinds of file, by extension, with the colour their rows carry on the map.
-// Clicking one dims every other kind on the map; clicking it again clears it.
+// Files by what the framework or a tool makes of them, in the framework's
+// reading order, with the colour their rows carry on the map. Clicking one
+// dims every other category on the map; clicking it again clears it. A
+// category the framework always shows can read zero, and then there is
+// nothing to pick.
 export function CategoryRail({
   categories,
   active,
@@ -22,14 +25,19 @@ export function CategoryRail({
             <button
               type="button"
               aria-pressed={category.name === active}
+              disabled={category.count === 0}
               onClick={() => onToggle(category.name)}
               className={
-                "-mx-1.5 flex h-6 w-[calc(100%+12px)] cursor-pointer items-center gap-2 rounded-[3px] px-1.5 text-left " +
-                (category.name === active ? "bg-raised outline outline-accent" : "hover:bg-raised")
+                "-mx-1.5 flex h-6 w-[calc(100%+12px)] items-center gap-2 rounded-[3px] px-1.5 text-left " +
+                (category.count === 0
+                  ? "text-muted"
+                  : category.name === active
+                    ? "cursor-pointer bg-raised outline outline-accent"
+                    : "cursor-pointer hover:bg-raised")
               }
             >
               <KindSwatch hue={category.hue} />
-              <span className="min-w-0 flex-1 truncate font-mono text-[12px]">{category.name}</span>
+              <span className="min-w-0 flex-1 truncate text-[12px]">{category.name}</span>
               <span className="font-mono text-[11px] text-muted tabular-nums">{category.count}</span>
             </button>
           </li>

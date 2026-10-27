@@ -151,6 +151,7 @@ export async function runClaimed(claimed: Claim): Promise<RunResult> {
       stage_message: null,
       completed_at: new Date().toISOString(),
       schema_version: result.schemaVersion,
+      framework: result.framework,
       adapters: result.adapters,
       coverage: result.coverage,
       excluded_directories: result.excludedDirectories,

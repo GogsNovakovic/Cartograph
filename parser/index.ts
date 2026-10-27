@@ -1,7 +1,7 @@
 import { realpathSync, statSync } from "node:fs";
 import path from "node:path";
 import { Project, ts } from "ts-morph";
-import { readRoles } from "./adapters.ts";
+import { adapt } from "./adapters/index.ts";
 import { degrees } from "./graph.ts";
 import { readImports } from "./imports.ts";
 import { Resolver } from "./resolve.ts";
@@ -44,11 +44,6 @@ export function parseRepository(directory: string): ParseResult {
 
 export function parseSelection({ root, walk }: Selection): ParseResult {
   const paths = walk.files.map((file) => file.path);
-  const { adapters, roles } = readRoles({
-    root,
-    paths,
-    packageJsons: walk.packageJsonPaths.map((p) => toRelative(root, p)),
-  });
   const resolver = new Resolver(root, paths, walk.packageJsonPaths);
 
   // Parsing only: no lib files, no following imports into files we didn't
@@ -138,6 +133,16 @@ export function parseSelection({ root, walk }: Selection): ParseResult {
     }
   }
 
+  // After parsing, so adapters read syntax rather than text, and only from
+  // files that parsed: a skipped file can't be described by its contents.
+  const skippedPaths = new Set(walk.files.filter((file) => file.skipReason !== null).map((file) => file.path));
+  const { framework, adapters, roles, routes } = adapt({
+    root,
+    paths,
+    packageJsons: walk.packageJsonPaths.map((p) => toRelative(root, p)),
+    source: (file) => (skippedPaths.has(file) ? undefined : sourceFiles.get(file)),
+  });
+
   const degree = degrees(paths, edges);
   const files = walk.files.map((file) => ({
     path: file.path,
@@ -146,7 +151,8 @@ export function parseSelection({ root, walk }: Selection): ParseResult {
     lines: file.lines,
     sha256: file.sha256,
     skipReason: file.skipReason,
-    role: roles.get(file.path) ?? null,
+    role: roles.get(file.path)?.role ?? null,
+    entry: roles.get(file.path)?.entry ?? false,
     fanOut: degree.get(file.path)?.fanOut ?? 0,
     fanIn: degree.get(file.path)?.fanIn ?? 0,
   }));
@@ -155,9 +161,11 @@ export function parseSelection({ root, walk }: Selection): ParseResult {
   return {
     schemaVersion: SCHEMA_VERSION,
     root,
+    framework,
     adapters,
     files,
     edges,
+    routes,
     coverage: {
       files: { found: files.length, parsed: files.length - skipped, skipped },
       imports: { ...totals, byKind },

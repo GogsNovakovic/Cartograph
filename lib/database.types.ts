@@ -23,6 +23,7 @@ export type Database = {
           created_at: string
           excluded_directories: Json | null
           failure_reason: string | null
+          framework: string | null
           id: string
           organization_id: string
           project_id: string
@@ -40,6 +41,7 @@ export type Database = {
           created_at?: string
           excluded_directories?: Json | null
           failure_reason?: string | null
+          framework?: string | null
           id?: string
           organization_id: string
           project_id: string
@@ -57,6 +59,7 @@ export type Database = {
           created_at?: string
           excluded_directories?: Json | null
           failure_reason?: string | null
+          framework?: string | null
           id?: string
           organization_id?: string
           project_id?: string
@@ -203,6 +206,7 @@ export type Database = {
       file_roles: {
         Row: {
           analysis_id: string
+          entry: boolean
           file_id: string
           id: string
           organization_id: string
@@ -211,6 +215,7 @@ export type Database = {
         }
         Insert: {
           analysis_id: string
+          entry: boolean
           file_id: string
           id?: string
           organization_id: string
@@ -219,6 +224,7 @@ export type Database = {
         }
         Update: {
           analysis_id?: string
+          entry?: boolean
           file_id?: string
           id?: string
           organization_id?: string
@@ -397,6 +403,7 @@ export type Database = {
           analysis_id: string
           file_id: string
           id: string
+          line: number
           method: string
           organization_id: string
           path: string
@@ -405,6 +412,7 @@ export type Database = {
           analysis_id: string
           file_id: string
           id?: string
+          line: number
           method: string
           organization_id: string
           path: string
@@ -413,6 +421,7 @@ export type Database = {
           analysis_id?: string
           file_id?: string
           id?: string
+          line?: number
           method?: string
           organization_id?: string
           path?: string

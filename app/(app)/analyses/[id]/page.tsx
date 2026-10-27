@@ -43,6 +43,11 @@ async function AnalysisMap({ analysis }: { analysis: AnalysisSummary }) {
         <div className="rounded border border-border px-3 py-2.5">
           <p className="font-medium">Couldn&apos;t rebuild this map from its stored rows.</p>
           <p className="mt-0.5 font-mono text-[12px] text-muted">{stored.message}</p>
+          {stored.stale && (
+            <div className="mt-2">
+              <RerunButton analysisId={analysis.id} />
+            </div>
+          )}
         </div>
       </Page>
     );

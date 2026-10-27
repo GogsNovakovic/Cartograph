@@ -60,8 +60,8 @@ export function walk(
 
 // What insights need to know about a file beyond its edges.
 export type InsightFile = {
-  // Set when a framework or tool reaches the file by convention.
-  role: string | null;
+  // Set when the framework or a tool loads the file itself.
+  entry: boolean;
   lines: number | null;
 };
 
@@ -91,9 +91,11 @@ export function findInsights(files: readonly InsightFile[], links: readonly Link
   const graph = adjacency(files.length, links);
   const indexes = files.map((_, i) => i);
 
-  // A page or a config isn't imported because the framework reaches it;
+  // A page or a config isn't imported because the framework loads it;
   // listing it would describe the limit of the import graph, not the code.
-  const unimported = indexes.filter((i) => graph.importers[i].length === 0 && files[i].role === null);
+  // A component nothing imports is listed: its role describes it, nothing
+  // loads it.
+  const unimported = indexes.filter((i) => graph.importers[i].length === 0 && !files[i].entry);
 
   const fanIns = indexes.map((i) => graph.importers[i].length).sort((a, b) => a - b);
   const cutoff = fanIns[Math.min(fanIns.length - 1, Math.floor(fanIns.length * HEAVY_PERCENTILE))] ?? 0;

@@ -5,6 +5,7 @@
 import type { ParseResult } from "../../parser/types.ts";
 import { fold, ROOT } from "./fold.ts";
 import { shortestUniqueLabels } from "./labels.ts";
+import { categoriesFor, categoryOf, NO_CONVENTION, UNLISTED } from "./taxonomy.ts";
 
 export type MapFile = {
   path: string;
@@ -16,6 +17,8 @@ export type MapFile = {
   lines: number | null;
   // What a framework or tool reaches the file as, from the parse result.
   role: string | null;
+  // Loaded by the framework or a tool itself, so not importing it is normal.
+  entry: boolean;
   // The category it belongs to in the rail.
   kind: string;
   // Which kind colour the file carries, or null for a kind left grey.
@@ -33,13 +36,17 @@ export type MapGroup = {
   fanOut: number;
 };
 
-// A kind of file, by extension. `hue` indexes the kind colours; null is grey.
+// A rail category: a kind of file by the role a framework or tool gives it.
+// `hue` indexes the kind colours; null is grey.
 export type Category = { name: string; count: number; hue: number | null };
+
+// A route the parser read exactly, pointing at the file that declares it.
+export type MapRoute = { file: number; line: number; method: string; path: string };
 
 export type MapModel = {
   // What the repository is called, and the adapters whose conventions named
   // at least one of its files.
-  repository: { name: string; adapters: string[] };
+  repository: { name: string; framework: string | null; adapters: string[] };
   files: MapFile[];
   groups: MapGroup[];
   // Distinct [importer, imported] file index pairs. Duplicate imports of the
@@ -50,19 +57,14 @@ export type MapModel = {
   typeOnly: boolean[];
   threshold: number;
   categories: Category[];
+  // In the parser's order: by path, then method.
+  routes: MapRoute[];
 };
 
-// Colour separates a handful of kinds and no more: the most common get a
-// hue, the long tail stays grey. Must match the --kind-N tokens.
+// Colour separates a handful of kinds and no more: the first categories in
+// reading order that have files get a hue, the rest stay grey. Must match
+// the --kind-N tokens.
 export const KIND_HUES = 4;
-
-// Kind is the extension, read straight off the path, so it's a fact about the
-// file rather than a judgement. "Makefile" or ".eslintrc" has none.
-export function kindOf(path: string): string {
-  const base = path.slice(path.lastIndexOf("/") + 1);
-  const dot = base.lastIndexOf(".");
-  return dot <= 0 ? "no extension" : base.slice(dot);
-}
 
 export function buildMapModel(result: ParseResult): MapModel {
   const { threshold, groups: folded } = fold(result.files);
@@ -74,11 +76,23 @@ export function buildMapModel(result: ParseResult): MapModel {
     for (const path of folded.get(dir) ?? []) groupOf.set(path, g);
   });
 
-  const byKind = new Map<string, number>();
-  for (const file of result.files) byKind.set(kindOf(file.path), (byKind.get(kindOf(file.path)) ?? 0) + 1);
-  const categories: Category[] = [...byKind.entries()]
-    .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
-    .map(([name, count], i) => ({ name, count, hue: i < KIND_HUES ? i : null }));
+  // The framework's categories in their fixed order, so the same repository
+  // always lays its rail out the same way. Empty ones are left out unless
+  // the framework always shows them.
+  const definitions = categoriesFor(result.framework);
+  const kindOf = (role: string | null) => categoryOf(definitions, role);
+  const counts = new Map<string, number>();
+  for (const file of result.files) counts.set(kindOf(file.role), (counts.get(kindOf(file.role)) ?? 0) + 1);
+  let hues = 0;
+  const categories: Category[] = definitions
+    .map((definition) => ({ definition, count: counts.get(definition.name) ?? 0 }))
+    .filter(({ definition, count }) => count > 0 || definition.always)
+    .map(({ definition, count }) => ({
+      name: definition.name,
+      count,
+      // Files nothing named have no kind to colour.
+      hue: count > 0 && hues < KIND_HUES && definition.name !== NO_CONVENTION && definition.name !== UNLISTED ? hues++ : null,
+    }));
   const hueOf = new Map(categories.map((category) => [category.name, category.hue]));
 
   const files: MapFile[] = [...result.files]
@@ -95,8 +109,9 @@ export function buildMapModel(result: ParseResult): MapModel {
         fanOut: file.fanOut,
         lines: file.lines,
         role: file.role,
-        kind: kindOf(file.path),
-        hue: hueOf.get(kindOf(file.path)) ?? null,
+        entry: file.entry,
+        kind: kindOf(file.role),
+        hue: hueOf.get(kindOf(file.role)) ?? null,
       };
     });
   const indexOf = new Map(files.map((file, i) => [file.path, i]));
@@ -148,5 +163,19 @@ export function buildMapModel(result: ParseResult): MapModel {
   // The checked-in result only knows the directory it was parsed from; its
   // last segment is the repository's name.
   const name = result.root.replace(/\/+$/, "").split("/").pop() || result.root;
-  return { repository: { name, adapters: result.adapters }, files, groups, links, typeOnly, threshold, categories };
+  const routes = result.routes.map((route) => {
+    const file = indexOf.get(route.file);
+    if (file === undefined) throw new Error(`route ${route.method} ${route.path} names ${route.file}, which isn't in the result`);
+    return { file, line: route.line, method: route.method, path: route.path };
+  });
+  return {
+    repository: { name, framework: result.framework, adapters: result.adapters },
+    files,
+    groups,
+    links,
+    typeOnly,
+    threshold,
+    categories,
+    routes,
+  };
 }

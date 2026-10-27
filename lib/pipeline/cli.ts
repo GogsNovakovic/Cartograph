@@ -12,10 +12,10 @@ function report(analysisId: string, result: RunResult): number {
     console.error(`analysis ${analysisId} failed${result.stage ? ` while ${result.stage}` : ""}: ${result.message}`);
     return 1;
   }
-  const { files, edges, roles } = result.stored;
+  const { files, edges, roles, routes } = result.stored;
   console.log(`analysis ${analysisId} complete`);
   console.log(`commit    ${result.commitSha}`);
-  console.log(`stored    ${files} files, ${edges} edges, ${roles} convention roles`);
+  console.log(`stored    ${files} files, ${edges} edges, ${roles} convention roles, ${routes} routes`);
   return 0;
 }
 

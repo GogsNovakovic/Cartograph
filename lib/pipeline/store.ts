@@ -25,9 +25,9 @@ export async function clearResult(db: Writer, analysisId: string): Promise<void>
   if (error) throw new Error(`Clearing earlier rows failed: ${error.message}`);
 }
 
-export type Stored = { files: number; edges: number; roles: number };
+export type Stored = { files: number; edges: number; roles: number; routes: number };
 
-// Files, edges and convention roles become rows. Ids are made here rather
+// Files, edges, convention roles and routes become rows. Ids are made here rather
 // than returned by the inserts, so edges can name their files without a
 // round trip per chunk.
 export async function storeResult(
@@ -39,9 +39,9 @@ export async function storeResult(
   const ids = new Map(result.files.map((file) => [file.path, randomUUID()]));
   const idOf = (path: string): string => {
     const id = ids.get(path);
-    // The parser only makes edges between files it found, so this would be a
-    // broken parse result, not something to store around.
-    if (!id) throw new Error(`An edge names ${path}, which isn't among the parsed files.`);
+    // The parser only makes edges and routes on files it found, so this would
+    // be a broken parse result, not something to store around.
+    if (!id) throw new Error(`The result names ${path}, which isn't among the parsed files.`);
     return id;
   };
 
@@ -75,9 +75,22 @@ export async function storeResult(
     (chunk) => db.from("edges").insert(chunk),
   );
   const roles = result.files.flatMap((file) =>
-    file.role === null ? [] : [{ ...owner, file_id: idOf(file.path), role: file.role, source: "convention" as const }],
+    file.role === null
+      ? []
+      : [{ ...owner, file_id: idOf(file.path), role: file.role, entry: file.entry, source: "convention" as const }],
   );
   await inChunks("file roles", roles, (chunk) => db.from("file_roles").insert(chunk));
+  await inChunks<Tables["routes"]["Insert"]>(
+    "routes",
+    result.routes.map((route) => ({
+      ...owner,
+      file_id: idOf(route.file),
+      method: route.method,
+      path: route.path,
+      line: route.line,
+    })),
+    (chunk) => db.from("routes").insert(chunk),
+  );
 
-  return { files: result.files.length, edges: result.edges.length, roles: roles.length };
+  return { files: result.files.length, edges: result.edges.length, roles: roles.length, routes: result.routes.length };
 }

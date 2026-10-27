@@ -3,6 +3,7 @@ import {
   EDGE_KINDS,
   EXCLUDED_REASONS,
   EXTERNAL_REASONS,
+  ROUTE_METHODS,
   SCHEMA_VERSION,
   UNRESOLVED_REASONS,
   type Coverage,
@@ -15,6 +16,7 @@ import {
   type OutcomeCounts,
   type ParseResult,
   type ReasonGroup,
+  type Route,
 } from "./types.ts";
 
 // Reading the output back checks every field rather than trusting a cast, so
@@ -84,6 +86,7 @@ function readFile(value: unknown, at: string): FileNode {
     sha256: nullableString(f.sha256, `${at}.sha256`),
     skipReason: nullableString(f.skipReason, `${at}.skipReason`),
     role: nullableString(f.role, `${at}.role`),
+    entry: boolean(f.entry, `${at}.entry`),
     fanOut: count(f.fanOut, `${at}.fanOut`),
     fanIn: count(f.fanIn, `${at}.fanIn`),
   };
@@ -98,6 +101,16 @@ function readEdge(value: unknown, at: string): Edge {
     specifier: string(e.specifier, `${at}.specifier`),
     line: count(e.line, `${at}.line`),
     typeOnly: boolean(e.typeOnly, `${at}.typeOnly`),
+  };
+}
+
+function readRoute(value: unknown, at: string): Route {
+  const r = object(value, at);
+  return {
+    file: string(r.file, `${at}.file`),
+    line: count(r.line, `${at}.line`),
+    method: oneOf(ROUTE_METHODS, r.method, `${at}.method`),
+    path: string(r.path, `${at}.path`),
   };
 }
 
@@ -175,9 +188,11 @@ export function toParseResult(value: unknown): ParseResult {
   const result: ParseResult = {
     schemaVersion: SCHEMA_VERSION,
     root: string(r.root, "result.root"),
+    framework: nullableString(r.framework, "result.framework"),
     adapters: array(r.adapters, "result.adapters").map((a, i) => string(a, `result.adapters[${i}]`)),
     files: array(r.files, "result.files").map((f, i) => readFile(f, `result.files[${i}]`)),
     edges: array(r.edges, "result.edges").map((e, i) => readEdge(e, `result.edges[${i}]`)),
+    routes: array(r.routes, "result.routes").map((x, i) => readRoute(x, `result.routes[${i}]`)),
     coverage: readCoverage(r.coverage, "result.coverage"),
     excludedDirectories: array(r.excludedDirectories, "result.excludedDirectories").map((d, i) =>
       readExcludedDirectory(d, `result.excludedDirectories[${i}]`),
@@ -190,6 +205,10 @@ export function toParseResult(value: unknown): ParseResult {
   result.edges.forEach((edge, i) => {
     if (!paths.has(edge.source)) fail(`result.edges[${i}].source`, "a path in files", edge.source);
     if (!paths.has(edge.target)) fail(`result.edges[${i}].target`, "a path in files", edge.target);
+  });
+  result.routes.forEach((route, i) => {
+    if (!paths.has(route.file)) fail(`result.routes[${i}].file`, "a path in files", route.file);
+    if (!route.path.startsWith("/")) fail(`result.routes[${i}].path`, "a path starting with /", route.path);
   });
   const { found, parsed, skipped } = result.coverage.files;
   if (found !== result.files.length) fail("result.coverage.files.found", String(result.files.length), found);

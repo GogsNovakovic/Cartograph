@@ -7,6 +7,7 @@ import type { Selection } from "@/components/map/canvas";
 import { DEFAULT_DEPTH, walk, type Adjacency, type Direction } from "@/lib/map/graph";
 import type { MapModel } from "@/lib/map/model";
 import { summarize, SUMMARY_ROWS } from "@/lib/map/summary";
+import { frameworkLabel } from "@/lib/map/taxonomy";
 
 type Tab = "structure" | "explanation";
 
@@ -73,11 +74,16 @@ function RepositoryOverview({ model, graph, onSelect, hovered, onHover }: Props)
         <div className="text-[11px] text-muted">Repository</div>
         <h2 className="font-mono text-[14px] leading-5 font-semibold break-all">{model.repository.name}</h2>
         <p className="mt-0.5 text-[11px] leading-4 text-muted">
-          {model.repository.adapters.length === 0 ? (
-            "No framework or tool conventions recognised."
+          {model.repository.framework === null ? (
+            "No framework recognised."
           ) : (
             <>
-              Conventions read:{" "}
+              Framework: <span className="text-text">{frameworkLabel(model.repository.framework)}</span>
+            </>
+          )}
+          {model.repository.adapters.length > 0 && (
+            <>
+              {" · "}Conventions read:{" "}
               <span className="font-mono text-text">{model.repository.adapters.join(", ")}</span>
             </>
           )}
@@ -87,7 +93,7 @@ function RepositoryOverview({ model, graph, onSelect, hovered, onHover }: Props)
       <dl className="grid grid-cols-3 border-y border-border">
         <Stat term="Files" value={summary.files} />
         <Stat term="Imports" value={summary.links} title="Distinct file-to-file imports the parser resolved" />
-        <Stat term="Route files" value={summary.routeFiles} title="Files an adapter names as a page, route handler or API route" />
+        <Stat term="Routes" value={model.routes.length} title="Routes whose method and full path were both read from the code" />
       </dl>
       <p className="border-b border-border px-3 py-1.5 text-[11px] leading-4 text-muted">
         <span className="font-mono text-text tabular-nums">{summary.unidentified}</span> of {summary.files} files
@@ -117,7 +123,76 @@ function RepositoryOverview({ model, graph, onSelect, hovered, onHover }: Props)
       </section>
 
       <UnimportedList model={model} graph={graph} files={summary.unimported} row={row} />
+      <RouteTable model={model} onSelect={onSelect} hovered={hovered} onHover={onHover} />
     </>
+  );
+}
+
+// Why a table is empty, by what the parser could and couldn't read. An empty
+// table is a statement, so it says which one.
+function noRoutes(framework: string | null): string {
+  if (framework === null) return "No framework recognised, so no routes were read.";
+  if (framework === "react") return "React declares no routes of its own.";
+  return "No route whose method and full path could both be read exactly from the code.";
+}
+
+function RouteTable({
+  model,
+  onSelect,
+  hovered,
+  onHover,
+}: Pick<Props, "model" | "onSelect" | "hovered" | "onHover">) {
+  const [all, setAll] = useState(false);
+  const routes = model.routes;
+  const shown = all ? routes : routes.slice(0, SUMMARY_ROWS);
+  return (
+    <section className="border-t border-border px-3 py-2">
+      <ListHeading title="Routes" count={<span className="text-muted">{routes.length}</span>} />
+      <Caption>
+        {routes.length === 0
+          ? noRoutes(model.repository.framework)
+          : "Method and full path as declared. Routes that would need guessing aren't listed."}
+      </Caption>
+      {routes.length > 0 && (
+        <ul>
+          {shown.map((route) => {
+            const file = model.files[route.file];
+            const lit = hovered?.kind === "file" ? hovered.file === route.file : hovered?.group === file.group;
+            return (
+              <li key={`${route.method} ${route.path} ${route.file}:${route.line}`}>
+                <button
+                  type="button"
+                  onClick={() => onSelect(route.file)}
+                  onMouseEnter={() => onHover({ kind: "file", file: route.file })}
+                  onMouseLeave={() => onHover(null)}
+                  className={
+                    "-mx-1.5 block w-[calc(100%+12px)] cursor-pointer rounded-[3px] px-1.5 py-0.5 text-left " +
+                    (lit ? "bg-raised shadow-[inset_2px_0_0_var(--accent)]" : "hover:bg-raised")
+                  }
+                >
+                  <span className="flex items-baseline gap-2 font-mono text-[12px]">
+                    <span className="w-[52px] shrink-0 text-[11px] text-muted">{route.method}</span>
+                    <span className="min-w-0 break-all">{route.path}</span>
+                  </span>
+                  <span className="block truncate pl-[60px] font-mono text-[11px] text-muted">
+                    {file.path}:{route.line}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {routes.length > SUMMARY_ROWS && (
+        <button
+          type="button"
+          onClick={() => setAll((current) => !current)}
+          className="mt-1 h-6 cursor-pointer text-[11px] text-muted hover:text-text"
+        >
+          {all ? `Show the first ${SUMMARY_ROWS}` : `Show all ${routes.length}`}
+        </button>
+      )}
+    </section>
   );
 }
 
@@ -269,7 +344,7 @@ function FolderStructure({ model, group: index }: Props & { group: number }) {
         </Fact>
       </Facts>
       <section className="border-t border-border px-3 py-2">
-        <ListHeading title="Kinds inside" count={<span className="text-muted">{kinds.length}</span>} />
+        <ListHeading title="Categories inside" count={<span className="text-muted">{kinds.length}</span>} />
         <ul>
           {kinds.map((kind) => (
             <li key={kind.name} className="flex h-6 items-center gap-2">
@@ -308,7 +383,7 @@ function FileStructure({ model, graph, typeOnly, file, onSelect, hovered, onHove
   return (
     <>
       <Facts>
-        <Fact term="Kind">
+        <Fact term="Category">
           <KindSwatch hue={info.hue} />
           <span className="font-mono">{info.kind}</span>
         </Fact>
