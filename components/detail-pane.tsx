@@ -8,6 +8,7 @@ import { DEFAULT_DEPTH, walk, type Adjacency, type Direction } from "@/lib/map/g
 import type { MapModel } from "@/lib/map/model";
 import { summarize, SUMMARY_ROWS } from "@/lib/map/summary";
 import { frameworkLabel } from "@/lib/map/taxonomy";
+import type { CommonJsExports } from "@/parser/types";
 
 type Tab = "structure" | "explanation";
 
@@ -133,6 +134,9 @@ function RepositoryOverview({ model, graph, onSelect, hovered, onHover }: Props)
 function noRoutes(framework: string | null): string {
   if (framework === null) return "No framework recognised, so no routes were read.";
   if (framework === "react") return "React declares no routes of its own.";
+  if (framework === "express") {
+    return "Express assembles routes at runtime from routers and middleware mounted on each other, so none are read from the code.";
+  }
   return "No route whose method and full path could both be read exactly from the code.";
 }
 
@@ -404,6 +408,8 @@ function FileStructure({ model, graph, typeOnly, file, onSelect, hovered, onHove
         </Fact>
       </Facts>
 
+      {info.commonjsExports !== null && <CommonJsExportList exports={info.commonjsExports} />}
+
       <section className="border-t border-border px-3 py-2">
         <ListHeading title="Imports" count={<span className="text-outgoing">{imports.length}→</span>} />
         {imports.length === 0 && <Caption>Imports nothing in the repository.</Caption>}
@@ -450,6 +456,45 @@ function FileStructure({ model, graph, typeOnly, file, onSelect, hovered, onHove
         )}
       </section>
     </>
+  );
+}
+
+// Names only when every write was read; otherwise where reading stopped,
+// with no partial list beside it.
+function CommonJsExportList({ exports }: { exports: CommonJsExports }) {
+  if (!exports.exact) {
+    return (
+      <section className="border-t border-border px-3 py-2">
+        <ListHeading title="CommonJS exports" count={<span className="text-muted">not read</span>} />
+        <Caption>
+          <span className="font-mono text-text">line {exports.line}</span> · {exports.reason}.
+        </Caption>
+      </section>
+    );
+  }
+  const { names, wholeValue } = exports;
+  return (
+    <section className="border-t border-border px-3 py-2">
+      <ListHeading title="CommonJS exports" count={<span className="text-muted">{names.length}</span>} />
+      <Caption>
+        {wholeValue
+          ? names.length > 0
+            ? "module.exports is one value, with these properties added to it."
+            : "module.exports is one value: a function, class or instance, not named properties."
+          : names.length > 0
+            ? "Named in the order they're written."
+            : "No names are written to module.exports or exports."}
+      </Caption>
+      {names.length > 0 && (
+        <ul className="flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[12px]">
+          {names.map((name) => (
+            <li key={name} className="break-all">
+              {name}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

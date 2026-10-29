@@ -1,7 +1,7 @@
 // How much of the import graph the map actually shows, as one figure and the
 // reasons behind the rest. Pure: a parse result's coverage and files in.
 
-import type { Coverage, FileNode, ImportExample, ImportReason } from "../../parser/types.ts";
+import { EDGE_KINDS, type Coverage, type EdgeKind, type FileNode, type ImportExample, type ImportReason } from "../../parser/types.ts";
 
 // Imports that name another file in the repository but aren't drawn. A
 // package or a stylesheet was never going to be an edge between source
@@ -22,8 +22,12 @@ export type CoverageSummary = {
   // Imports aimed at the repository, and how many of them became edges.
   aimed: number;
   resolved: number;
-  // Rounded down, so a graph missing anything never reads as 100%.
-  percent: string;
+  // Rounded down, so a graph missing anything never reads as 100%. Null when
+  // nothing was aimed at the repository: 100% of nothing isn't a figure.
+  percent: string | null;
+  // Resolved imports by how they're written, in the parser's kind order,
+  // leaving out kinds with none.
+  resolvedByKind: Array<{ kind: EdgeKind; count: number }>;
   missing: MissingGroup[];
   skipped: { path: string; reason: string }[];
   partial: boolean;
@@ -37,6 +41,9 @@ export function summariseCoverage(coverage: Coverage, files: FileNode[]): Covera
   const resolved = coverage.imports.resolved;
   const aimed = resolved + missing.reduce((sum, group) => sum + group.count, 0);
   const skipped = files.flatMap((file) => (file.skipReason ? [{ path: file.path, reason: file.skipReason }] : []));
-  const percent = aimed === 0 ? "100" : (Math.floor((resolved / aimed) * 1000) / 10).toFixed(1).replace(/\.0$/, "");
-  return { aimed, resolved, percent, missing, skipped, partial: resolved < aimed || skipped.length > 0 };
+  const percent = aimed === 0 ? null : (Math.floor((resolved / aimed) * 1000) / 10).toFixed(1).replace(/\.0$/, "");
+  const resolvedByKind = EDGE_KINDS.map((kind) => ({ kind, count: coverage.imports.byKind[kind].resolved })).filter(
+    ({ count }) => count > 0,
+  );
+  return { aimed, resolved, percent, resolvedByKind, missing, skipped, partial: resolved < aimed || skipped.length > 0 };
 }

@@ -51,7 +51,7 @@ export async function readStoredResult(
       readAll("files", (from, to) =>
         db
           .from("files")
-          .select("id, path, folder, bytes, lines, sha256, skip_reason, fan_in, fan_out")
+          .select("id, path, folder, bytes, lines, sha256, skip_reason, fan_in, fan_out, commonjs_exports")
           .eq("analysis_id", analysisId)
           .order("path")
           .range(from, to),
@@ -107,6 +107,7 @@ export async function readStoredResult(
           entry: roleOf.get(file.id)?.entry ?? false,
           fanOut: file.fan_out,
           fanIn: file.fan_in,
+          commonjsExports: file.commonjs_exports,
         })),
         // An id with no file reaches the reader as a missing path and fails
         // there, rather than being dropped here.

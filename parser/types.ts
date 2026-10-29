@@ -1,7 +1,7 @@
 // The shape the parser writes. Everything downstream reads this, so a change
 // here is a change to a contract: bump SCHEMA_VERSION when it changes.
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export const EDGE_KINDS = ["import", "re_export", "dynamic_import", "require"] as const;
 export type EdgeKind = (typeof EDGE_KINDS)[number];
@@ -29,7 +29,23 @@ export type FileNode = {
   // Distinct files this one imports / distinct files importing this one.
   fanOut: number;
   fanIn: number;
+  // What the file exports through module.exports / exports, or null when it
+  // never refers to either (an ES module, or a script that exports nothing).
+  commonjsExports: CommonJsExports | null;
 };
+
+// Exact or not given: names only when every write to the exports was read
+// from top-level statements; otherwise where and why they couldn't be.
+export type CommonJsExports =
+  | {
+      exact: true;
+      // In the order they're first written.
+      names: string[];
+      // module.exports was replaced by one value (a function, a class, an
+      // instance) rather than an object of named properties.
+      wholeValue: boolean;
+    }
+  | { exact: false; line: number; reason: string };
 
 export type Edge = {
   source: string;

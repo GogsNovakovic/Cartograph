@@ -2,7 +2,7 @@
 // is the contract and isn't changed; this is a view over it, built once on
 // the server so the browser gets indexes instead of 4,000 path pairs.
 
-import type { ParseResult } from "../../parser/types.ts";
+import type { CommonJsExports, ParseResult } from "../../parser/types.ts";
 import { fold, ROOT } from "./fold.ts";
 import { shortestUniqueLabels } from "./labels.ts";
 import { categoriesFor, categoryOf, NO_CONVENTION, UNLISTED } from "./taxonomy.ts";
@@ -23,6 +23,7 @@ export type MapFile = {
   kind: string;
   // Which kind colour the file carries, or null for a kind left grey.
   hue: number | null;
+  commonjsExports: CommonJsExports | null;
 };
 
 export type MapGroup = {
@@ -112,6 +113,7 @@ export function buildMapModel(result: ParseResult): MapModel {
         entry: file.entry,
         kind: kindOf(file.role),
         hue: hueOf.get(kindOf(file.role)) ?? null,
+        commonjsExports: file.commonjsExports,
       };
     });
   const indexOf = new Map(files.map((file, i) => [file.path, i]));

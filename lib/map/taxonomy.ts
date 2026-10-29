@@ -53,6 +53,21 @@ const FRAMEWORKS: Record<string, Framework> = {
       { name: "Bootstrap", roles: ["bootstrap"] },
     ],
   },
+  // Routers first: they're where requests come in, even though Express
+  // assembles the routes themselves at runtime.
+  express: {
+    label: "Express",
+    categories: [
+      { name: "Routers", roles: ["router"], always: true },
+      { name: "Controllers", roles: ["controller"], always: true },
+      { name: "Middleware", roles: ["middleware"], always: true },
+      { name: "Validators", roles: ["validator"] },
+      { name: "Services", roles: ["service"], always: true },
+      { name: "Repositories", roles: ["repository"] },
+      { name: "Models", roles: ["model"], always: true },
+      { name: "Utilities", roles: ["utility"] },
+    ],
+  },
   react: {
     label: "React",
     categories: [

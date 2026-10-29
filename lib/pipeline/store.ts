@@ -58,6 +58,7 @@ export async function storeResult(
       skip_reason: file.skipReason,
       fan_in: file.fanIn,
       fan_out: file.fanOut,
+      commonjs_exports: file.commonjsExports,
     })),
     (chunk) => db.from("files").insert(chunk),
   );

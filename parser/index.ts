@@ -2,11 +2,13 @@ import { realpathSync, statSync } from "node:fs";
 import path from "node:path";
 import { Project, ts } from "ts-morph";
 import { adapt } from "./adapters/index.ts";
+import { readCommonJsExports } from "./commonjs.ts";
 import { degrees } from "./graph.ts";
 import { readImports } from "./imports.ts";
 import { Resolver } from "./resolve.ts";
 import {
   SCHEMA_VERSION,
+  type CommonJsExports,
   type Edge,
   type EdgeKind,
   type ImportExample,
@@ -72,6 +74,7 @@ export function parseSelection({ root, walk }: Selection): ParseResult {
     require: emptyCounts(),
   };
   const groups = new Map<string, ReasonGroup>();
+  const commonjsExports = new Map<string, CommonJsExports>();
 
   const count = (kind: EdgeKind, outcome: ImportOutcome) => {
     totals.total++;
@@ -101,6 +104,9 @@ export function parseSelection({ root, walk }: Selection): ParseResult {
       file.skipReason = `syntax error at line ${line}: ${ts.flattenDiagnosticMessageText(syntaxError.messageText, " ")}`;
       continue;
     }
+
+    const exported = readCommonJsExports(sourceFile);
+    if (exported) commonjsExports.set(file.path, exported);
 
     for (const site of readImports(sourceFile)) {
       const at = { from: file.path, line: site.line, kind: site.kind };
@@ -155,6 +161,7 @@ export function parseSelection({ root, walk }: Selection): ParseResult {
     entry: roles.get(file.path)?.entry ?? false,
     fanOut: degree.get(file.path)?.fanOut ?? 0,
     fanIn: degree.get(file.path)?.fanIn ?? 0,
+    commonjsExports: commonjsExports.get(file.path) ?? null,
   }));
   const skipped = files.filter((file) => file.skipReason !== null).length;
 

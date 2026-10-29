@@ -3,6 +3,7 @@
 // looking at.
 
 import type { Route } from "../types.ts";
+import { express } from "./express.ts";
 import { nestjs } from "./nestjs.ts";
 import { nextjs } from "./nextjs.ts";
 import { react } from "./react.ts";
@@ -13,8 +14,10 @@ export type { RepositoryContext } from "./shared.ts";
 
 // Detection order. The first framework that matches is the repository's;
 // the rest aren't asked. Next before React, because every Next app also
-// depends on React.
-const FRAMEWORKS: readonly FrameworkAdapter[] = [nextjs, nestjs, react];
+// depends on React. Next and Nest before Express, because either can run on
+// an Express server. Express before React: a package depending on both is a
+// server that renders React, and its layout is the server's.
+const FRAMEWORKS: readonly FrameworkAdapter[] = [nextjs, nestjs, express, react];
 
 export type Adapted = {
   framework: string | null;

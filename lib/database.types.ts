@@ -259,6 +259,7 @@ export type Database = {
         Row: {
           analysis_id: string
           bytes: number
+          commonjs_exports: Json | null
           fan_in: number
           fan_out: number
           folder: string
@@ -272,6 +273,7 @@ export type Database = {
         Insert: {
           analysis_id: string
           bytes: number
+          commonjs_exports?: Json | null
           fan_in: number
           fan_out: number
           folder: string
@@ -285,6 +287,7 @@ export type Database = {
         Update: {
           analysis_id?: string
           bytes?: number
+          commonjs_exports?: Json | null
           fan_in?: number
           fan_out?: number
           folder?: string

@@ -5,6 +5,15 @@ import { useState } from "react";
 import { RerunButton } from "@/components/analyse-form";
 import type { CoverageSummary } from "@/lib/map/coverage";
 import { HOME_PATH } from "@/lib/routes";
+import type { EdgeKind } from "@/parser/types";
+
+// How each kind is written in code, so the breakdown reads as syntax.
+const KIND_LABELS: Record<EdgeKind, string> = {
+  import: "import",
+  re_export: "export from",
+  dynamic_import: "import()",
+  require: "require()",
+};
 
 // The strip above a finished map: which repository and commit it is, how
 // much of the import graph it shows, and running it again. When the graph is
@@ -41,7 +50,15 @@ export function CoverageBanner({
         )}
         <span aria-hidden className="h-4 w-px bg-border" />
         <span className="min-w-0 truncate">
-          {coverage.partial ? (
+          {coverage.aimed === 0 ? (
+            // Nothing to resolve is its own statement, never "all of zero".
+            <span className={coverage.partial ? "font-semibold" : "text-muted"}>
+              No imports point into the repository
+              {coverage.partial && (
+                <span className="font-normal text-muted"> · {coverage.skipped.length} files skipped</span>
+              )}
+            </span>
+          ) : coverage.partial ? (
             <>
               <span className="font-semibold">Partial graph: {coverage.percent}%</span>
               <span className="text-muted">
@@ -55,6 +72,15 @@ export function CoverageBanner({
             <span className="text-muted">All {coverage.aimed} imports into the repository resolved</span>
           )}
         </span>
+        {coverage.resolvedByKind.length > 0 && (
+          <span className="hidden shrink-0 gap-2 font-mono text-[11.5px] text-muted lg:flex" title="Resolved imports by how they're written">
+            {coverage.resolvedByKind.map(({ kind, count }) => (
+              <span key={kind}>
+                <span className="text-text tabular-nums">{count}</span> {KIND_LABELS[kind]}
+              </span>
+            ))}
+          </span>
+        )}
         {coverage.partial && (
           <button
             type="button"

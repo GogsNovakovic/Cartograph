@@ -6,6 +6,7 @@ import {
   ROUTE_METHODS,
   SCHEMA_VERSION,
   UNRESOLVED_REASONS,
+  type CommonJsExports,
   type Coverage,
   type Edge,
   type EdgeKind,
@@ -76,6 +77,19 @@ function edgeKind(value: unknown, at: string): EdgeKind {
   return oneOf(EDGE_KINDS, value, at);
 }
 
+function readCommonJsExports(value: unknown, at: string): CommonJsExports | null {
+  if (value === null) return null;
+  const c = object(value, at);
+  if (boolean(c.exact, `${at}.exact`)) {
+    return {
+      exact: true,
+      names: array(c.names, `${at}.names`).map((n, i) => string(n, `${at}.names[${i}]`)),
+      wholeValue: boolean(c.wholeValue, `${at}.wholeValue`),
+    };
+  }
+  return { exact: false, line: count(c.line, `${at}.line`), reason: string(c.reason, `${at}.reason`) };
+}
+
 function readFile(value: unknown, at: string): FileNode {
   const f = object(value, at);
   return {
@@ -89,6 +103,7 @@ function readFile(value: unknown, at: string): FileNode {
     entry: boolean(f.entry, `${at}.entry`),
     fanOut: count(f.fanOut, `${at}.fanOut`),
     fanIn: count(f.fanIn, `${at}.fanIn`),
+    commonjsExports: readCommonJsExports(f.commonjsExports, `${at}.commonjsExports`),
   };
 }
 
