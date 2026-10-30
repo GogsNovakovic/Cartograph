@@ -8,6 +8,7 @@ import { CoverageBanner } from "@/components/coverage-banner";
 import { getAnalysis, type AnalysisSummary } from "@/lib/analyses";
 import { summariseCoverage } from "@/lib/map/coverage";
 import { findInsights } from "@/lib/map/graph";
+import { tracing } from "@/lib/env";
 import { buildMapModel } from "@/lib/map/model";
 import { HOME_PATH } from "@/lib/routes";
 import { readStoredResult } from "@/lib/stored-result";
@@ -52,7 +53,7 @@ async function AnalysisMap({ analysis }: { analysis: AnalysisSummary }) {
       </Page>
     );
   }
-  const model = buildMapModel(stored.result);
+  const model = buildMapModel(stored.result, { roles: stored.suggested, failure: stored.classificationFailure });
   return (
     <>
       <CoverageBanner
@@ -61,7 +62,12 @@ async function AnalysisMap({ analysis }: { analysis: AnalysisSummary }) {
         commitSha={analysis.commitSha}
         coverage={summariseCoverage(stored.result.coverage, stored.result.files)}
       />
-      <AnalysisView model={model} insights={findInsights(model.files, model.links)} />
+      <AnalysisView
+        analysisId={analysis.id}
+        model={model}
+        insights={findInsights(model.files, model.links)}
+        tracing={tracing}
+      />
     </>
   );
 }

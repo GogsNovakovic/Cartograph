@@ -1,12 +1,16 @@
 import "server-only";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { parseSelection, selectFiles } from "../../parser/index.ts";
+import type { ParseResult } from "../../parser/types.ts";
+import { runCache } from "../ai/cache.ts";
+import { classifyFiles, type Classified } from "../ai/classify.ts";
+import { flushTraces } from "../ai/client.ts";
 import type { Database } from "../database.types.ts";
 import { STALE_AFTER_MS, type Stage } from "../progress.ts";
 import { downloadArchive, parseRepositoryUrl, resolveCommit } from "./github.ts";
-import { clearResult, storeResult, type Stored } from "./store.ts";
+import { clearResult, storeResult, storeSuggestedRoles, type FileIds, type Stored } from "./store.ts";
 import { getWriter, type Writer } from "./writer.ts";
 
 export type StartResult =
@@ -50,7 +54,7 @@ export async function startAnalysis(organizationId: string, url: string): Promis
 }
 
 export type RunResult =
-  | { ok: true; commitSha: string; stored: Stored }
+  | { ok: true; commitSha: string; stored: Stored; classification: Classification }
   | { ok: false; stage: Stage | null; message: string };
 
 function messageOf(error: unknown): string {
@@ -89,6 +93,7 @@ async function claim(db: Writer, analysisId: string): Promise<Claim> {
       adapters: null,
       coverage: null,
       excluded_directories: null,
+      classification_failure: null,
     })
     .eq("id", analysisId)
     .or(`status.neq.parsing,started_at.lt."${cutoff}"`)
@@ -143,7 +148,11 @@ export async function runClaimed(claimed: Claim): Promise<RunResult> {
     const result = parseSelection(selection);
 
     await enter("storing", `Storing ${result.files.length} files and ${result.edges.length} imports`);
-    const stored = await storeResult(db, { analysisId, organizationId: claimed.organizationId }, result);
+    const { stored, ids } = await storeResult(db, { analysisId, organizationId: claimed.organizationId }, result);
+
+    const unnamed = result.files.filter((file) => file.role === null && file.skipReason === null);
+    await enter("classifying", `Suggesting roles for ${unnamed.length} files no convention names`);
+    const classification = await classify(db, claimed, ids, directory, unnamed);
 
     await update({
       status: "complete",
@@ -155,8 +164,9 @@ export async function runClaimed(claimed: Claim): Promise<RunResult> {
       adapters: result.adapters,
       coverage: result.coverage,
       excluded_directories: result.excludedDirectories,
+      classification_failure: classification.ok ? null : classification.message,
     });
-    return { ok: true, commitSha, stored };
+    return { ok: true, commitSha, stored, classification };
   } catch (error) {
     const message = messageOf(error);
     try {
@@ -170,5 +180,37 @@ export async function runClaimed(claimed: Claim): Promise<RunResult> {
     return { ok: false, stage, message };
   } finally {
     if (directory) await rm(directory, { recursive: true, force: true });
+    await flushTraces();
   }
+}
+
+export type Classification =
+  | ({ ok: true } & Classified)
+  | { ok: false; message: string };
+
+// Roles a model suggests for files no adapter named, stored beside the
+// convention roles and marked as the model's. The map is complete without
+// them, so a failed call doesn't fail the run: it is recorded on the
+// analysis, and the pane says no roles were suggested and why. A failure to
+// store them is a storage failure like any other, and does fail it.
+async function classify(
+  db: Writer,
+  claimed: Claim,
+  ids: FileIds,
+  directory: string,
+  files: ParseResult["files"],
+): Promise<Classification> {
+  let classified: Classified;
+  try {
+    // A parsed file always has a hash; one without is left out rather than keyed on nothing.
+    const hashed = files.flatMap((file) => (file.sha256 === null ? [] : [{ path: file.path, sha256: file.sha256 }]));
+    const sources = await Promise.all(
+      hashed.map(async (file) => ({ ...file, source: await readFile(path.join(directory, file.path), "utf8") })),
+    );
+    classified = await classifyFiles(sources, runCache(db, claimed.organizationId));
+  } catch (error) {
+    return { ok: false, message: messageOf(error) };
+  }
+  await storeSuggestedRoles(db, claimed, ids, classified.suggested);
+  return { ok: true, ...classified };
 }

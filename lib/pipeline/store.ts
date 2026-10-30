@@ -27,6 +27,9 @@ export async function clearResult(db: Writer, analysisId: string): Promise<void>
 
 export type Stored = { files: number; edges: number; roles: number; routes: number };
 
+// Each stored file's row id by path, for rows added after the result.
+export type FileIds = ReadonlyMap<string, string>;
+
 // Files, edges, convention roles and routes become rows. Ids are made here rather
 // than returned by the inserts, so edges can name their files without a
 // round trip per chunk.
@@ -34,7 +37,7 @@ export async function storeResult(
   db: Writer,
   { analysisId, organizationId }: { analysisId: string; organizationId: string },
   result: ParseResult,
-): Promise<Stored> {
+): Promise<{ stored: Stored; ids: FileIds }> {
   const owner = { analysis_id: analysisId, organization_id: organizationId };
   const ids = new Map(result.files.map((file) => [file.path, randomUUID()]));
   const idOf = (path: string): string => {
@@ -93,5 +96,27 @@ export async function storeResult(
     (chunk) => db.from("routes").insert(chunk),
   );
 
-  return { files: result.files.length, edges: result.edges.length, roles: roles.length, routes: result.routes.length };
+  return {
+    stored: { files: result.files.length, edges: result.edges.length, roles: roles.length, routes: result.routes.length },
+    ids,
+  };
+}
+
+// Roles a model suggested, on files no convention named. Kept as the
+// model's, so nothing reads one as what a framework reaches the file as.
+export async function storeSuggestedRoles(
+  db: Writer,
+  { analysisId, organizationId }: { analysisId: string; organizationId: string },
+  ids: ReadonlyMap<string, string>,
+  suggested: ReadonlyArray<{ path: string; role: string }>,
+): Promise<void> {
+  await inChunks<Tables["file_roles"]["Insert"]>(
+    "suggested roles",
+    suggested.map(({ path, role }) => {
+      const id = ids.get(path);
+      if (!id) throw new Error(`A role was suggested for ${path}, which isn't among the stored files.`);
+      return { analysis_id: analysisId, organization_id: organizationId, file_id: id, role, entry: false, source: "model" };
+    }),
+    (chunk) => db.from("file_roles").insert(chunk),
+  );
 }

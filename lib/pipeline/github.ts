@@ -86,6 +86,17 @@ export async function downloadArchive({ owner, name }: Repository, sha: string, 
   await pipeline(chunks(response.body), extract({ cwd: directory, strip: 1 }));
 }
 
+// One file's bytes at an exact commit, or null when it isn't there. Raw
+// content rather than the API: no token, and it doesn't spend the
+// unauthenticated API allowance a run needs.
+export async function fetchFile({ owner, name }: Repository, sha: string, file: string): Promise<Buffer | null> {
+  const encoded = file.split("/").map(encodeURIComponent).join("/");
+  const response = await fetch(`https://raw.githubusercontent.com/${owner}/${name}/${sha}/${encoded}`, { headers: HEADERS });
+  if (response.status === 404) return null;
+  if (!response.ok) throw await failure(response, `fetching ${file} at ${sha.slice(0, 7)}`);
+  return Buffer.from(await response.arrayBuffer());
+}
+
 // fetch's body is the DOM stream type, which Node's stream helpers don't
 // accept by type; a generator bridges it without a cast.
 async function* chunks(body: ReadableStream<Uint8Array>): AsyncGenerator<Uint8Array> {

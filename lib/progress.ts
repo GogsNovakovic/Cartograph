@@ -14,6 +14,7 @@ export const STAGE_LABELS: Record<Stage, string> = {
   selecting: "Selecting",
   parsing: "Parsing",
   storing: "Storing",
+  classifying: "Classifying",
 };
 
 // Exactly what the database publishes when a run moves: the stage and its

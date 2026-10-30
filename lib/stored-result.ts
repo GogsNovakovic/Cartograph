@@ -23,7 +23,17 @@ async function readAll<T>(
 
 // `stale` when the rows predate the parser reading them, so the page can
 // offer the re-run that fixes it.
-export type StoredResult = { ok: true; result: ParseResult } | { ok: false; stale: boolean; message: string };
+export type StoredResult =
+  | {
+      ok: true;
+      result: ParseResult;
+      // Roles a model suggested for files no convention named, by path. Kept
+      // apart from the parse result, which only ever holds convention.
+      suggested: Map<string, string>;
+      // Why no roles were suggested, when the run couldn't ask.
+      classificationFailure: string | null;
+    }
+  | { ok: false; stale: boolean; message: string };
 
 // A complete analysis, rebuilt into exactly what the parser returned, and
 // then put through the parser's own reader. Rows that don't add up (an edge
@@ -37,7 +47,7 @@ export async function readStoredResult(
   try {
     const { data: analysis, error } = await db
       .from("analyses")
-      .select("schema_version, framework, adapters, coverage, excluded_directories")
+      .select("schema_version, framework, adapters, coverage, excluded_directories, classification_failure")
       .eq("id", analysisId)
       .single();
     if (error) throw new Error(`Reading the analysis failed: ${error.message}`);
@@ -47,7 +57,7 @@ export async function readStoredResult(
       return { ok: false, stale: true, message: "This map was stored by an earlier version of the parser. Run it again to read it with this one." };
     }
 
-    const [files, edges, roles, routes] = await Promise.all([
+    const [files, edges, roles, suggestions, routes] = await Promise.all([
       readAll("files", (from, to) =>
         db
           .from("files")
@@ -75,6 +85,15 @@ export async function readStoredResult(
           .order("file_id")
           .range(from, to),
       ),
+      readAll("suggested roles", (from, to) =>
+        db
+          .from("file_roles")
+          .select("file_id, role")
+          .eq("analysis_id", analysisId)
+          .eq("source", "model")
+          .order("file_id")
+          .range(from, to),
+      ),
       readAll("routes", (from, to) =>
         db
           .from("routes")
@@ -88,8 +107,17 @@ export async function readStoredResult(
     const pathOf = new Map(files.map((file) => [file.id, file.path]));
     const roleOf = new Map(roles.map((role) => [role.file_id, role]));
 
+    const suggested = new Map<string, string>();
+    for (const { file_id, role } of suggestions) {
+      const path = pathOf.get(file_id);
+      if (path === undefined) throw new Error(`A suggested role names file ${file_id}, which isn't in this analysis.`);
+      suggested.set(path, role);
+    }
+
     return {
       ok: true,
+      suggested,
+      classificationFailure: analysis.classification_failure,
       result: toParseResult({
         schemaVersion: analysis.schema_version,
         // The model names the map after the root's last segment.

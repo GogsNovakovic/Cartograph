@@ -1,9 +1,12 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
+import { explainKey, ExplanationTab, type ExplainState } from "@/components/explanation";
 import { KindSwatch } from "@/components/map/nodes";
 import { PathText } from "@/components/path-text";
 import type { Selection } from "@/components/map/canvas";
+import type { TracingStatus } from "@/lib/env";
+import type { ExplainTarget } from "@/lib/explain";
 import { DEFAULT_DEPTH, walk, type Adjacency, type Direction } from "@/lib/map/graph";
 import type { MapModel } from "@/lib/map/model";
 import { summarize, SUMMARY_ROWS } from "@/lib/map/summary";
@@ -19,14 +22,21 @@ type Props = {
   typeOnly: ReadonlySet<string>;
   selected: Selection;
   onSelect: (file: number) => void;
+  onSelectFolder: (group: number) => void;
   // What the pointer is over, on the map or in this pane. Same shape as a
   // selection: a file, or a folded folder.
   hovered: Selection;
   onHover: (hovered: Selection) => void;
+  analysisId: string;
+  tracing: TracingStatus;
+  // Explanations fetched this visit, by explainKey.
+  explained: ReadonlyMap<string, ExplainState>;
+  onExplain: (target: ExplainTarget) => void;
 };
 
 // Everything here is computed from the model already in the browser:
-// selecting or hovering never waits on a request.
+// selecting or hovering never waits on a request. The one request is an
+// explanation, and only when asked for.
 export function DetailPane(props: Props) {
   const { model, selected } = props;
   // Held above the selection, so comparing three files' explanations
@@ -42,6 +52,10 @@ export function DetailPane(props: Props) {
           const directory = model.groups[selected.group].directory;
           return directory === "." ? "./" : directory + "/";
         })();
+  const target: ExplainTarget =
+    selected.kind === "file"
+      ? { kind: "file", path: model.files[selected.file].path }
+      : { kind: "folder", directory: model.groups[selected.group].directory };
 
   return (
     <>
@@ -50,7 +64,17 @@ export function DetailPane(props: Props) {
         <Tabs tab={tab} onChange={setTab} />
       </div>
       {tab === "explanation" ? (
-        <ExplanationEmpty subject={selected.kind === "file" ? "file" : "folder"} />
+        <ExplanationTab
+          analysisId={props.analysisId}
+          model={model}
+          subject={selected}
+          state={props.explained.get(explainKey(target))}
+          onExplain={() => props.onExplain(target)}
+          tracing={props.tracing}
+          onSelect={props.onSelect}
+          onSelectFolder={props.onSelectFolder}
+          onHover={props.onHover}
+        />
       ) : selected.kind === "folder" ? (
         <FolderStructure {...props} group={selected.group} />
       ) : (
@@ -68,6 +92,7 @@ function RepositoryOverview({ model, graph, onSelect, hovered, onHover }: Props)
   const top = summary.leanedOn.slice(0, SUMMARY_ROWS);
   const most = top.length > 0 ? graph.importers[top[0]].length : 0;
   const row = rowOf(model, onSelect, hovered, onHover);
+  const suggested = model.files.filter((file) => file.suggestedRole !== null).length;
 
   return (
     <>
@@ -99,6 +124,19 @@ function RepositoryOverview({ model, graph, onSelect, hovered, onHover }: Props)
       <p className="border-b border-border px-3 py-1.5 text-[11px] leading-4 text-muted">
         <span className="font-mono text-text tabular-nums">{summary.unidentified}</span> of {summary.files} files
         aren&apos;t named by any convention.
+        {summary.unidentified > 0 && (
+          <>
+            {" "}
+            {model.repository.classificationFailure !== null ? (
+              <>No roles were suggested for them: {model.repository.classificationFailure}</>
+            ) : (
+              <>
+                <span className="font-mono text-text tabular-nums">{suggested}</span> of them have a role suggested by a
+                model.
+              </>
+            )}
+          </>
+        )}
       </p>
 
       <section className="border-b border-border px-3 py-2">
@@ -300,20 +338,6 @@ function Tabs({ tab, onChange }: { tab: Tab; onChange: (tab: Tab) => void }) {
   );
 }
 
-// Nothing fills this until there's a model call to fill it with, and
-// nothing here pretends otherwise.
-function ExplanationEmpty({ subject }: { subject: "file" | "folder" }) {
-  return (
-    <div className="px-3 py-4">
-      <p className="text-[12px]">No explanation for this {subject} yet.</p>
-      <p className="mt-0.5 text-[11px] leading-4 text-muted">
-        An explanation describes what the parser found here, and nothing beyond it. The Structure tab has
-        everything the parser found.
-      </p>
-    </div>
-  );
-}
-
 function Facts({ children }: { children: ReactNode }) {
   return <dl className="grid grid-cols-[108px_1fr] px-3 py-2 text-[12px] leading-6">{children}</dl>;
 }
@@ -394,6 +418,12 @@ function FileStructure({ model, graph, typeOnly, file, onSelect, hovered, onHove
         <Fact term="Reached as">
           {info.role === null ? <span className="text-muted">no convention</span> : info.role}
         </Fact>
+        {info.suggestedRole !== null && (
+          <Fact term="Suggested role">
+            {info.suggestedRole}
+            <span className="text-[11px] text-muted">by a model, not convention</span>
+          </Fact>
+        )}
         <Fact term="Folder">
           <span className="truncate font-mono" title={info.path}>
             {slash === -1 ? "./" : info.path.slice(0, slash)}

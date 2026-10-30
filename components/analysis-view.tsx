@@ -1,18 +1,32 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { explain, freshness } from "@/app/(app)/actions";
 import { CategoryRail } from "@/components/category-rail";
 import { DetailPane } from "@/components/detail-pane";
+import { explainKey, type ExplainState } from "@/components/explanation";
 import { InsightsPanel } from "@/components/insights-panel";
 import { MapCanvas, type OpenState, type Selection } from "@/components/map/canvas";
 import { Workspace } from "@/components/workspace";
+import type { TracingStatus } from "@/lib/env";
+import type { ExplainTarget } from "@/lib/explain";
 import { adjacency, type Insight } from "@/lib/map/graph";
 import type { MapModel } from "@/lib/map/model";
 
 // One analysis on screen. The rail, the map and the detail pane all select
 // files, so what's open, what's selected and which category is active live
 // here, and every answer is computed from the model already in the browser.
-export function AnalysisView({ model, insights }: { model: MapModel; insights: Insight[] }) {
+export function AnalysisView({
+  analysisId,
+  model,
+  insights,
+  tracing,
+}: {
+  analysisId: string;
+  model: MapModel;
+  insights: Insight[];
+  tracing: TracingStatus;
+}) {
   const [open, setOpen] = useState<OpenState>({ groups: new Set(), opened: null });
   const [selected, setSelected] = useState<Selection>(null);
   const [category, setCategory] = useState<string | null>(null);
@@ -20,6 +34,10 @@ export function AnalysisView({ model, insights }: { model: MapModel; insights: I
   // the other. Kept apart from the selection so hovering never moves it.
   const [hovered, setHovered] = useState<Selection>(null);
   const graph = useMemo(() => adjacency(model.files.length, model.links), [model]);
+  // Every explanation fetched this visit, by what it explains. Here rather
+  // than in the pane, so moving the selection away and back finds it again
+  // without another request.
+  const [explained, setExplained] = useState<ReadonlyMap<string, ExplainState>>(new Map());
   const typeOnly = useMemo(
     () => new Set(model.links.filter((_, i) => model.typeOnly[i]).map(([source, target]) => `${source}>${target}`)),
     [model],
@@ -34,6 +52,37 @@ export function AnalysisView({ model, insights }: { model: MapModel; insights: I
     // The row under the pointer is about to be replaced, and won't report
     // that the pointer left it.
     setHovered(null);
+  };
+
+  // Clicking a folder's path does what clicking its box on the map does:
+  // opens it and selects the folder.
+  const selectFolder = (group: number) => {
+    setOpen((current) => ({ groups: new Set(current.groups).add(group), opened: group }));
+    setSelected({ kind: "folder", group });
+    setHovered(null);
+  };
+
+  // The explanation first; then, for a file, whether the repository has
+  // moved on since. Actions run one at a time, so the check waits for the
+  // explanation rather than holding it up.
+  const requestExplanation = async (target: ExplainTarget) => {
+    const key = explainKey(target);
+    const put = (update: (current: ExplainState | undefined) => ExplainState | undefined) =>
+      setExplained((all) => {
+        const next = update(all.get(key));
+        return next === undefined ? all : new Map(all).set(key, next);
+      });
+    put(() => ({ status: "pending" }));
+    const result = await explain(analysisId, target);
+    if (!result.ok) {
+      put(() => ({ status: "failed", message: result.message }));
+      return;
+    }
+    const checking = target.kind === "file";
+    put(() => ({ status: "done", explanation: result.explanation, freshness: null, checking }));
+    if (target.kind !== "file") return;
+    const fresh = await freshness(analysisId, target.path);
+    put((current) => (current?.status === "done" ? { ...current, freshness: fresh, checking: false } : current));
   };
 
   // The map reports every pointer move; only a change re-renders.
@@ -70,8 +119,13 @@ export function AnalysisView({ model, insights }: { model: MapModel; insights: I
           typeOnly={typeOnly}
           selected={selected}
           onSelect={selectFile}
+          onSelectFolder={selectFolder}
           hovered={hovered}
           onHover={hover}
+          analysisId={analysisId}
+          tracing={tracing}
+          explained={explained}
+          onExplain={requestExplanation}
         />
       }
     />

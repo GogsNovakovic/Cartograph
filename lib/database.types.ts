@@ -17,6 +17,7 @@ export type Database = {
       analyses: {
         Row: {
           adapters: string[] | null
+          classification_failure: string | null
           commit_sha: string | null
           completed_at: string | null
           coverage: Json | null
@@ -35,6 +36,7 @@ export type Database = {
         }
         Insert: {
           adapters?: string[] | null
+          classification_failure?: string | null
           commit_sha?: string | null
           completed_at?: string | null
           coverage?: Json | null
@@ -53,6 +55,7 @@ export type Database = {
         }
         Update: {
           adapters?: string[] | null
+          classification_failure?: string | null
           commit_sha?: string | null
           completed_at?: string | null
           coverage?: Json | null
@@ -148,58 +151,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "files"
             referencedColumns: ["id", "analysis_id", "organization_id"]
-          },
-        ]
-      }
-      explanations: {
-        Row: {
-          analysis_id: string
-          body: string
-          created_at: string
-          file_id: string
-          id: string
-          model: string
-          organization_id: string
-        }
-        Insert: {
-          analysis_id: string
-          body: string
-          created_at?: string
-          file_id: string
-          id?: string
-          model: string
-          organization_id: string
-        }
-        Update: {
-          analysis_id?: string
-          body?: string
-          created_at?: string
-          file_id?: string
-          id?: string
-          model?: string
-          organization_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "explanations_analysis_id_organization_id_fkey"
-            columns: ["analysis_id", "organization_id"]
-            isOneToOne: false
-            referencedRelation: "analyses"
-            referencedColumns: ["id", "organization_id"]
-          },
-          {
-            foreignKeyName: "explanations_file_id_analysis_id_organization_id_fkey"
-            columns: ["file_id", "analysis_id", "organization_id"]
-            isOneToOne: false
-            referencedRelation: "files"
-            referencedColumns: ["id", "analysis_id", "organization_id"]
-          },
-          {
-            foreignKeyName: "explanations_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
           },
         ]
       }
@@ -351,6 +302,44 @@ export type Database = {
           },
         ]
       }
+      model_cache: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          model: string
+          organization_id: string
+          output: Json
+          task: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          model: string
+          organization_id: string
+          output: Json
+          task: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          model?: string
+          organization_id?: string
+          output?: Json
+          task?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_cache_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
@@ -461,7 +450,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      analysis_stage: "fetching" | "selecting" | "parsing" | "storing"
+      analysis_stage:
+        | "fetching"
+        | "selecting"
+        | "parsing"
+        | "storing"
+        | "classifying"
       analysis_status: "queued" | "parsing" | "complete" | "failed"
       edge_kind: "import" | "re_export" | "dynamic_import" | "require"
       file_role_source: "convention" | "model"
@@ -592,7 +586,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      analysis_stage: ["fetching", "selecting", "parsing", "storing"],
+      analysis_stage: [
+        "fetching",
+        "selecting",
+        "parsing",
+        "storing",
+        "classifying",
+      ],
       analysis_status: ["queued", "parsing", "complete", "failed"],
       edge_kind: ["import", "re_export", "dynamic_import", "require"],
       file_role_source: ["convention", "model"],

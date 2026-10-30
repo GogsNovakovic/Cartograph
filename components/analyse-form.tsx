@@ -32,12 +32,12 @@ export function AnalyseForm() {
   );
 }
 
-export function RerunButton({ analysisId }: { analysisId: string }) {
+export function RerunButton({ analysisId, label = "Run again" }: { analysisId: string; label?: string }) {
   const [state, action, pending] = useActionState(rerunAnalysis.bind(null, analysisId), IDLE);
   return (
     <form action={action} className="flex items-center gap-2">
       <button type="submit" disabled={pending} className={BUTTON}>
-        {pending ? "Starting…" : "Run again"}
+        {pending ? "Starting…" : label}
       </button>
       {state.message && <span className="text-[12px]">{state.message}</span>}
     </form>

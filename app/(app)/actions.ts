@@ -3,7 +3,10 @@
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
+import { flushTraces } from "@/lib/ai/client";
 import { getAnalysis } from "@/lib/analyses";
+import { explainTarget, type ExplainResult, type ExplainTarget } from "@/lib/explain";
+import { checkFreshness, type Freshness } from "@/lib/freshness";
 import { getCurrentOrganization } from "@/lib/organization";
 import { claimAnalysis, runClaimed, startAnalysis } from "@/lib/pipeline/run";
 import { analysisPath } from "@/lib/routes";
@@ -54,4 +57,25 @@ export async function rerunAnalysis(analysisId: string): Promise<ActionState> {
   if (failed) return { message: failed };
   refresh();
   return { message: null };
+}
+
+// Arguments to an action arrive from the browser unchecked, whatever their
+// declared type.
+function isTarget(value: unknown): value is ExplainTarget {
+  if (typeof value !== "object" || value === null || !("kind" in value)) return false;
+  if (value.kind === "file") return "path" in value && typeof value.path === "string";
+  return value.kind === "folder" && "directory" in value && typeof value.directory === "string";
+}
+
+export async function explain(analysisId: string, target: ExplainTarget): Promise<ExplainResult> {
+  if (typeof analysisId !== "string" || !isTarget(target)) return { ok: false, message: "Nothing to explain." };
+  const result = await explainTarget(analysisId, target);
+  // The trace is delivered after the answer, not in front of it.
+  after(flushTraces);
+  return result;
+}
+
+export async function freshness(analysisId: string, path: string): Promise<Freshness> {
+  if (typeof analysisId !== "string" || typeof path !== "string") return { state: "unknown", message: "No file named." };
+  return checkFreshness(analysisId, path);
 }

@@ -17,6 +17,9 @@ export type MapFile = {
   lines: number | null;
   // What a framework or tool reaches the file as, from the parse result.
   role: string | null;
+  // What a model suggested the file is, only for files no convention named.
+  // Never decides its kind or colour: those are convention's.
+  suggestedRole: string | null;
   // Loaded by the framework or a tool itself, so not importing it is normal.
   entry: boolean;
   // The category it belongs to in the rail.
@@ -47,7 +50,13 @@ export type MapRoute = { file: number; line: number; method: string; path: strin
 export type MapModel = {
   // What the repository is called, and the adapters whose conventions named
   // at least one of its files.
-  repository: { name: string; framework: string | null; adapters: string[] };
+  repository: {
+    name: string;
+    framework: string | null;
+    adapters: string[];
+    // Why no roles were suggested, when the run couldn't ask.
+    classificationFailure: string | null;
+  };
   files: MapFile[];
   groups: MapGroup[];
   // Distinct [importer, imported] file index pairs. Duplicate imports of the
@@ -67,7 +76,9 @@ export type MapModel = {
 // the --kind-N tokens.
 export const KIND_HUES = 4;
 
-export function buildMapModel(result: ParseResult): MapModel {
+export type Suggestions = { roles: ReadonlyMap<string, string>; failure: string | null };
+
+export function buildMapModel(result: ParseResult, suggestions: Suggestions): MapModel {
   const { threshold, groups: folded } = fold(result.files);
 
   const directories = [...folded.keys()].sort();
@@ -110,6 +121,7 @@ export function buildMapModel(result: ParseResult): MapModel {
         fanOut: file.fanOut,
         lines: file.lines,
         role: file.role,
+        suggestedRole: file.role === null ? (suggestions.roles.get(file.path) ?? null) : null,
         entry: file.entry,
         kind: kindOf(file.role),
         hue: hueOf.get(kindOf(file.role)) ?? null,
@@ -171,7 +183,7 @@ export function buildMapModel(result: ParseResult): MapModel {
     return { file, line: route.line, method: route.method, path: route.path };
   });
   return {
-    repository: { name, framework: result.framework, adapters: result.adapters },
+    repository: { name, framework: result.framework, adapters: result.adapters, classificationFailure: suggestions.failure },
     files,
     groups,
     links,
