@@ -7,42 +7,14 @@ import { flushTraces } from "@/lib/ai/client";
 import { getAnalysis } from "@/lib/analyses";
 import { explainTarget, type ExplainResult, type ExplainTarget } from "@/lib/explain";
 import { checkFreshness, type Freshness } from "@/lib/freshness";
-import { getCurrentOrganization } from "@/lib/organization";
-import { claimAnalysis, runClaimed, startAnalysis } from "@/lib/pipeline/run";
 import { analysisPath } from "@/lib/routes";
+import { analyse, begin } from "./start";
 
 export type ActionState = { message: string | null };
 
-// The row is claimed before the response, so the page it lands on already
-// says "fetching". The run itself happens after the response has gone: it
-// can take minutes, and the page follows it over the progress channel.
-async function begin(analysisId: string): Promise<string | null> {
-  const claimed = await claimAnalysis(analysisId);
-  if (!claimed.ok) return claimed.message;
-  // A run records its own failure on the row, so its result is already where
-  // the page will read it.
-  after(() => runClaimed(claimed.claim));
-  return null;
-}
-
 export async function analyseRepository(_previous: ActionState, form: FormData): Promise<ActionState> {
-  // From the token, never the form: which organization owns the analysis is
-  // not the browser's to say.
-  const organization = await getCurrentOrganization();
-  if (!organization) return { message: "This session has no active organization." };
-
-  const url = form.get("url");
-  if (typeof url !== "string" || url.trim() === "") return { message: "Paste a repository URL." };
-
-  const started = await startAnalysis(organization.id, url);
+  const started = await analyse(form.get("url"));
   if (!started.ok) return { message: started.message };
-
-  // An analysed repository goes to its existing analysis. Running it again
-  // is done from there, on purpose, not by pasting the URL again.
-  if (started.created) {
-    const failed = await begin(started.analysisId);
-    if (failed) return { message: failed };
-  }
   redirect(analysisPath(started.analysisId));
 }
 

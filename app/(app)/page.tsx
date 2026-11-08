@@ -7,19 +7,21 @@ import { listAnalyses, type AnalysisSummary } from "@/lib/analyses";
 import { getCurrentOrganization } from "@/lib/organization";
 import { analysisPath } from "@/lib/routes";
 
-export default function DashboardPage() {
+export default function DashboardPage({ searchParams }: PageProps<"/">) {
   return (
     <section className="mx-auto flex w-full max-w-[960px] flex-col px-4 pt-5 pb-8">
       {/* Both reads depend on the request's token, so they stream in the same
           HTML response rather than being filled in by the browser. */}
       <Suspense>
-        <Dashboard />
+        <Dashboard searchParams={searchParams} />
       </Suspense>
     </section>
   );
 }
 
-async function Dashboard() {
+async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
+  // Set when the landing page's form came back here unstarted.
+  const { url, message } = await searchParams;
   const org = await getCurrentOrganization();
   if (!org) {
     return <p className="text-muted">This session has no active organization.</p>;
@@ -37,7 +39,10 @@ async function Dashboard() {
           </span>
         )}
       </header>
-      <AnalyseForm />
+      <AnalyseForm
+        defaultUrl={typeof url === "string" ? url : undefined}
+        message={typeof message === "string" ? message : null}
+      />
       {!result.ok ? (
         // Said plainly rather than shown as an empty list: an empty list here
         // would claim the organization has no analyses.
