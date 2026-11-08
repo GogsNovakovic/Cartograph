@@ -1,0 +1,26 @@
+{
+  "name": "cartograph-agent",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The agent that answers questions about one analysis by looking them up.",
+  "scripts": {
+    "dev": "mda dev .",
+    "build": "mda build .",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@langchain/core": "1.3.5",
+    "@langchain/openai": "^1.8.2",
+    "langchain": "1.6.3",
+    "managed-deepagents": "0.10.2",
+    "zod": "^4.6.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22"
+  },
+  "overrides": {
+    "@langchain/core": "1.3.5",
+    "langchain": "1.6.3"
+  }
+}

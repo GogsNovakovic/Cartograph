@@ -80,6 +80,8 @@ You pick the file structure. These are about behaviour.
 - **Who may read a row is decided by a policy**, never by application code. If a
   query needs a `where` clause to return the right rows, the policy is wrong.
 - **One place constructs the AI client.** Anywhere else silently skips tracing.
+  The one exception is the agent in `agent/`: a separate service whose runtime
+  builds and traces its own model client.
 
 ## Conventions
 
