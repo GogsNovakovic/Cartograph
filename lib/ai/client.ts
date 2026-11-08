@@ -1,5 +1,6 @@
 import "server-only";
 import { Client } from "langsmith";
+import { getCurrentRunTree } from "langsmith/traceable";
 import { wrapOpenAI } from "langsmith/wrappers/openai";
 import OpenAI from "openai";
 import { env, tracing } from "../env.ts";
@@ -18,8 +19,9 @@ export const MODELS = {
 } as const;
 
 // Unconfigured tracing still runs every call; it just records nothing. Not
-// constructed then, so a missing key never becomes a failed upload.
-const langsmith = tracing.on ? new Client() : undefined;
+// constructed then, so a missing key never becomes a failed upload. The
+// evals use this same client for datasets and experiments.
+export const langsmith = tracing.on ? new Client() : undefined;
 
 export const ai = wrapOpenAI(new OpenAI({ apiKey: env.openaiApiKey }), {
   client: langsmith,
@@ -31,6 +33,33 @@ export const ai = wrapOpenAI(new OpenAI({ apiKey: env.openaiApiKey }), {
 // a traced step with its cache read as a traced step inside it, so a cache
 // hit shows up as a run with no model call.
 export const TRACE = { client: langsmith, tracingEnabled: tracing.on };
+
+let projectId: Promise<string> | undefined;
+
+// A score on the traced step in progress, sent with the trace's batches so
+// flushTraces waits for it as well. With tracing off there is no run to put
+// it on, and nothing is sent.
+export async function scoreCurrentRun(feedback: { key: string; score: number; comment: string }): Promise<void> {
+  if (!langsmith || !tracing.on) return;
+  const run = getCurrentRunTree(true);
+  if (!run) return;
+  const project = tracing.project;
+  // Read once; a failed read is asked again next time rather than kept.
+  projectId ??= langsmith
+    .readProject({ projectName: project })
+    .then((p) => p.id)
+    .catch((error: unknown) => {
+      projectId = undefined;
+      throw error;
+    });
+  await langsmith.createFeedback({
+    ...feedback,
+    runId: run.id,
+    traceId: run.trace_id,
+    startTime: run.start_time,
+    sessionId: await projectId,
+  });
+}
 
 // Traces are sent in the background. A terminal run exits, and a request's
 // work can end, before the last batch is delivered, so callers wait for it.

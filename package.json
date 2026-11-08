@@ -10,7 +10,10 @@
     "db:push": "supabase db push --include-seed",
     "db:types": "supabase gen types typescript --linked --schema public > lib/database.types.ts",
     "parse": "node parser/cli.ts",
-    "analyse": "node --env-file=.env.local --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON lib/pipeline/cli.ts"
+    "analyse": "node --import ./lib/load-env.ts --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON lib/pipeline/cli.ts",
+    "eval:paths": "node --import ./lib/load-env.ts --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON evals/invented-paths.ts",
+    "eval:roles": "node --import ./lib/load-env.ts --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON evals/roles.ts",
+    "eval:prompts": "node --import ./lib/load-env.ts --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON evals/prompts.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.17",

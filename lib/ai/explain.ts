@@ -4,7 +4,8 @@ import type { Json } from "../database.types.ts";
 import type { MapModel } from "../map/model.ts";
 import type { CommonJsExports, EdgeKind, ParseResult } from "../../parser/types.ts";
 import { cacheKey, readCache, type CacheStore, type Task } from "./cache.ts";
-import { ai, MODELS, TRACE } from "./client.ts";
+import { ai, MODELS, scoreCurrentRun, TRACE } from "./client.ts";
+import { checkPaths, pathScore } from "./invented-paths.ts";
 
 // What a model is handed to explain a file or a folder. Every path in it
 // comes from the parse result: the model is told what is connected, it never
@@ -22,7 +23,7 @@ const RULES = `Rules:
 - Explain; don't assess. No judgements of quality, no suggestions, no issues, no ratings.
 - ${FORMAT}`;
 
-const FILE_PROMPT = `You explain one file of a codebase to a developer who is reading a dependency map of it.
+export const FILE_PROMPT = `You explain one file of a codebase to a developer who is reading a dependency map of it.
 
 You are given the file's source and its neighbours: every file in the repository that it imports, and every file in the repository that imports it, as resolved by a parser. Those lists are complete and exact. Package imports aren't listed; they're visible in the source.
 
@@ -218,14 +219,14 @@ type Clipped = { text: string; truncated: { shown: number; total: number } | nul
 // the model and the pane are both told how much of it that was.
 const SOURCE_LIMIT = 60_000;
 
-function clip(source: string, lines: number): Clipped {
+export function clip(source: string, lines: number): Clipped {
   if (source.length <= SOURCE_LIMIT) return { text: source, truncated: null };
   const cut = source.lastIndexOf("\n", SOURCE_LIMIT);
   const text = source.slice(0, cut === -1 ? SOURCE_LIMIT : cut);
   return { text, truncated: { shown: text.split("\n").length, total: lines } };
 }
 
-function fileMessage(input: FileInput, source: Clipped): string {
+export function fileMessage(input: FileInput, source: Clipped): string {
   const head = [
     `Repository: ${input.repository}`,
     `File: ${input.path} (${input.lines} lines; ${roleText(input.role, input.suggestedRole)})`,
@@ -286,7 +287,9 @@ function readStored(json: Json | undefined): Stored | null {
   return { body, truncated: { shown, total } };
 }
 
-async function write(name: string, prompt: string, message: string): Promise<string> {
+// The model call alone: no cache and no check. The evals call it directly to
+// run a prompt over a dataset.
+export async function writeExplanation(name: string, prompt: string, message: string): Promise<string> {
   const completion = await ai.chat.completions.create(
     {
       model: MODELS.explain,
@@ -305,6 +308,20 @@ async function write(name: string, prompt: string, message: string): Promise<str
   if (choice?.finish_reason === "length") throw new Error("The model ran out of room before finishing, so nothing is shown.");
   const body = choice?.message.content?.trim();
   if (!body) throw new Error(choice?.message.refusal ?? "The model returned an empty answer.");
+  return body;
+}
+
+// The invented-path check, live on real traffic: each explanation a model
+// writes is checked against exactly what it was sent, and the score lands on
+// the traced step. A cache hit isn't checked again; it was when written.
+// Recording the score is never allowed to cost the user the explanation.
+async function write(name: string, prompt: string, message: string): Promise<string> {
+  const body = await writeExplanation(name, prompt, message);
+  try {
+    await scoreCurrentRun(pathScore(checkPaths([prompt, message], body)));
+  } catch (error) {
+    console.error(`Recording the invented-path check failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
   return body;
 }
 

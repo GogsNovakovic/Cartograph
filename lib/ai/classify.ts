@@ -77,8 +77,11 @@ const SCHEMA = {
 };
 
 // One call's answers by path. Anything not matching a file that was sent,
-// or not one of the allowed roles, is dropped and so stays unanswered.
-async function ask(files: readonly Unclassified[]): Promise<Map<string, SuggestedRole | null>> {
+// or not one of the allowed roles, is dropped and so stays unanswered. No
+// cache: the role eval calls this directly to ask the model itself.
+export async function askRoles(
+  files: ReadonlyArray<Pick<Unclassified, "path" | "source">>,
+): Promise<Map<string, SuggestedRole | null>> {
   const message = files
     .map((file) => `<file path="${file.path}">\n${file.source.slice(0, SOURCE_CHARS)}\n</file>`)
     .join("\n\n");
@@ -134,7 +137,7 @@ export const classifyFiles = traceable(
     // A few calls in flight at once; one failing fails the whole set, so no
     // run stores roles for some files and silently none for the rest.
     for (let i = 0; i < batches.length; i += AT_ONCE) {
-      const asked = await Promise.all(batches.slice(i, i + AT_ONCE).map(ask));
+      const asked = await Promise.all(batches.slice(i, i + AT_ONCE).map(askRoles));
       const rows: CacheRow[] = [];
       for (const [b, answered] of asked.entries()) {
         for (const file of batches[i + b]) {
