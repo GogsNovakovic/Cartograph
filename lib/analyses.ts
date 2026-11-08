@@ -12,8 +12,11 @@ export type AnalysisSummary = {
   // When the latest run began; null until one has.
   startedAt: string | null;
   completedAt: string | null;
+  // The run whose rows are the map, and the commit it was built from. Both
+  // null until a run has stored one; a re-run or a failed re-run keeps them.
+  mapRun: string | null;
   commitSha: string | null;
-  // Unfinished, and older than a live run could be, as of this read.
+  // Unfinished, and silent for longer than a live run would be, as of this read.
   stale: boolean;
   repository: { owner: string; name: string };
 };
@@ -30,7 +33,7 @@ export type AnalysisResult =
 const LIMIT = 100;
 
 const COLUMNS =
-  "id, status, stage, stage_message, failure_reason, created_at, started_at, completed_at, commit_sha, project:projects (owner, name)";
+  "id, status, stage, stage_message, failure_reason, created_at, started_at, heartbeat_at, completed_at, result_run, commit_sha, project:projects (owner, name)";
 
 type Row = {
   id: string;
@@ -40,14 +43,16 @@ type Row = {
   failure_reason: string | null;
   created_at: string;
   started_at: string | null;
+  heartbeat_at: string | null;
   completed_at: string | null;
+  result_run: string | null;
   commit_sha: string | null;
   project: { owner: string; name: string };
 };
 
 function toSummary(row: Row): AnalysisSummary {
   return {
-    stale: isStale(row.status, row.started_at ?? row.created_at, Date.now()),
+    stale: isStale(row.status, row.heartbeat_at ?? row.created_at, Date.now()),
     id: row.id,
     status: row.status,
     stage: row.stage,
@@ -56,6 +61,7 @@ function toSummary(row: Row): AnalysisSummary {
     createdAt: row.created_at,
     startedAt: row.started_at,
     completedAt: row.completed_at,
+    mapRun: row.result_run,
     commitSha: row.commit_sha,
     repository: row.project,
   };

@@ -45,3 +45,9 @@ function tracingStatus(): TracingStatus {
 }
 
 export const tracing = tracingStatus();
+
+// The key agent credentials are signed with, as the JWK `supabase gen
+// signing-key` prints, imported into the project as its current signing key.
+// Optional like tracing: without it the map, the pane and explanations all
+// work, and only asking the agent says why it can't.
+export const agentSigningKey = process.env.SUPABASE_AGENT_SIGNING_KEY?.trim() || null;

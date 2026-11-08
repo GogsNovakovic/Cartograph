@@ -46,9 +46,9 @@ export function RealtimeProvider({
 export type Connection = { state: "connecting" } | { state: "live" } | { state: "failed"; reason: string };
 
 // The server's render of a run, kept current by the analysis's progress
-// channel. When the run ends, the page is re-read once so everything the
-// event doesn't carry (commit, timings) catches up; a fresh render replaces
-// whatever arrived live before it.
+// channel. The page is re-read once when the channel opens, and once when
+// the run ends so everything the event doesn't carry (commit, timings)
+// catches up; a fresh render replaces whatever arrived live before it.
 export function useAnalysisProgress(analysisId: string, rendered: Progress): { progress: Progress; connection: Connection } {
   const getClient = useContext(RealtimeContext);
   // A wiring mistake, not a runtime state: fail loudly rather than render a
@@ -84,7 +84,13 @@ export function useAnalysisProgress(analysisId: string, rendered: Progress): { p
             if (progress.status === "complete" || progress.status === "failed") router.refresh();
           })
           .subscribe((status, error) => {
-            if (status === "SUBSCRIBED") setConnection({ state: "live" });
+            if (status === "SUBSCRIBED") {
+              setConnection({ state: "live" });
+              // Anything published between the server's render and now was
+              // sent to nobody. One fresh render picks it up; from here on
+              // the channel carries every change.
+              router.refresh();
+            }
             else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
               setConnection({ state: "failed", reason: error?.message ?? status.toLowerCase().replace("_", " ") });
             }

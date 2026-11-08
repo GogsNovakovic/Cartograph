@@ -13,3 +13,13 @@ export function getSupabase() {
     accessToken: async () => (await auth()).getToken(),
   });
 }
+
+// The agent's reads: the same client, carrying an agent credential instead of
+// a member's token. The policies narrow it to the one analysis it names.
+export function getSupabaseAsAgent(credential: string) {
+  return createClient<Database>(env.supabaseUrl, env.supabasePublishableKey, {
+    accessToken: async () => credential,
+  });
+}
+
+export type Supabase = ReturnType<typeof getSupabase>;

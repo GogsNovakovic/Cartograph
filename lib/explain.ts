@@ -29,10 +29,11 @@ export async function explainTarget(analysisId: string, target: ExplainTarget): 
   if (!found.ok) return found;
   const analysis = found.analysis;
   if (!analysis) return { ok: false, message: "No such analysis." };
-  if (analysis.status !== "complete" || analysis.commitSha === null) {
-    return { ok: false, message: "This analysis has no complete map to explain." };
+  // The map on screen, which a re-run in progress or a failed one leaves in place.
+  if (analysis.mapRun === null || analysis.commitSha === null) {
+    return { ok: false, message: "This analysis has no stored map to explain." };
   }
-  const stored = await readStoredResult(analysis.id, analysis.repository);
+  const stored = await readStoredResult(getSupabase(), analysis.id, analysis.repository);
   if (!stored.ok) return { ok: false, message: stored.message };
 
   const repository = `${analysis.repository.owner}/${analysis.repository.name}`;

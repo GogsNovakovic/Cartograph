@@ -1,5 +1,5 @@
 import "server-only";
-import { getSupabase } from "@/lib/supabase";
+import type { Supabase } from "@/lib/supabase";
 import { toParseResult } from "@/parser/read";
 import { SCHEMA_VERSION, type ParseResult } from "@/parser/types";
 
@@ -39,18 +39,24 @@ export type StoredResult =
 // then put through the parser's own reader. Rows that don't add up (an edge
 // to a missing file, counts that disagree) fail here with the reason,
 // rather than drawing a map that's quietly wrong.
+// Read with whichever client is asking, a member's or the agent's: the
+// policies decide what either may see.
 export async function readStoredResult(
+  db: Supabase,
   analysisId: string,
   repository: { owner: string; name: string },
 ): Promise<StoredResult> {
-  const db = getSupabase();
   try {
     const { data: analysis, error } = await db
       .from("analyses")
-      .select("schema_version, framework, adapters, coverage, excluded_directories, classification_failure")
+      .select("result_run, schema_version, framework, adapters, coverage, excluded_directories, classification_failure")
       .eq("id", analysisId)
       .single();
     if (error) throw new Error(`Reading the analysis failed: ${error.message}`);
+    // Every read below is of this one run, so rows a re-run is storing
+    // beside it are never mixed in.
+    const run = analysis.result_run;
+    if (run === null) throw new Error("This analysis has no stored map yet.");
     // Stored by an earlier parser, whose rows lack what this one reads. Said
     // plainly rather than surfacing as a validation error several fields in.
     if (analysis.schema_version !== SCHEMA_VERSION) {
@@ -63,6 +69,7 @@ export async function readStoredResult(
           .from("files")
           .select("id, path, folder, bytes, lines, sha256, skip_reason, fan_in, fan_out, commonjs_exports")
           .eq("analysis_id", analysisId)
+          .eq("run", run)
           .order("path")
           .range(from, to),
       ),
@@ -71,6 +78,7 @@ export async function readStoredResult(
           .from("edges")
           .select("source_file_id, target_file_id, kind, specifier, line, type_only")
           .eq("analysis_id", analysisId)
+          .eq("run", run)
           .order("id")
           .range(from, to),
       ),
@@ -81,6 +89,7 @@ export async function readStoredResult(
           .from("file_roles")
           .select("file_id, role, entry")
           .eq("analysis_id", analysisId)
+          .eq("run", run)
           .eq("source", "convention")
           .order("file_id")
           .range(from, to),
@@ -90,6 +99,7 @@ export async function readStoredResult(
           .from("file_roles")
           .select("file_id, role")
           .eq("analysis_id", analysisId)
+          .eq("run", run)
           .eq("source", "model")
           .order("file_id")
           .range(from, to),
@@ -99,6 +109,7 @@ export async function readStoredResult(
           .from("routes")
           .select("file_id, line, method, path")
           .eq("analysis_id", analysisId)
+          .eq("run", run)
           .order("id")
           .range(from, to),
       ),

@@ -53,28 +53,29 @@ async function failure(response: Response, what: string): Promise<Error> {
 
 // The commit the default branch points at now. The archive is then requested
 // by that exact commit, so what is parsed and what is recorded can't differ
-// even if someone pushes in between.
+// even if someone pushes in between. HEAD is the default branch, so this is
+// one request of the sixty an hour, not two.
 export async function resolveCommit({ owner, name }: Repository): Promise<string> {
-  const repo = await fetch(`https://api.github.com/repos/${owner}/${name}`, {
-    headers: { ...HEADERS, Accept: "application/vnd.github+json" },
+  const commit = await fetch(`https://api.github.com/repos/${owner}/${name}/commits/HEAD`, {
+    headers: { ...HEADERS, Accept: "application/vnd.github.sha" },
   });
-  if (repo.status === 404) {
+  if (commit.status === 404) {
     throw new Error(`There is no public repository at github.com/${owner}/${name}. It doesn't exist, or it's private.`);
   }
-  if (!repo.ok) throw await failure(repo, "looking up the repository");
-  const { default_branch: branch } = (await repo.json()) as { default_branch?: unknown };
-  if (typeof branch !== "string") throw new Error(`GitHub didn't say what github.com/${owner}/${name}'s default branch is.`);
-
-  const commit = await fetch(
-    `https://api.github.com/repos/${owner}/${name}/commits/${encodeURIComponent(branch)}`,
-    { headers: { ...HEADERS, Accept: "application/vnd.github.sha" } },
-  );
   if (commit.status === 409) throw new Error(`github.com/${owner}/${name} is empty: it has no commits to map.`);
-  if (!commit.ok) throw await failure(commit, `resolving the ${branch} branch`);
+  if (!commit.ok) throw await failure(commit, "resolving the default branch");
   const sha = (await commit.text()).trim();
-  if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error(`GitHub returned "${sha.slice(0, 60)}" as the ${branch} commit.`);
+  if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error(`GitHub returned "${sha.slice(0, 60)}" as the default branch's commit.`);
   return sha;
 }
+
+// Past these a repository is refused rather than mapped. The download is
+// counted as it arrives, and what it unpacks to is counted too, because a
+// small archive can expand to fill the disk.
+export const MAX_ARCHIVE_BYTES = 150 * 1024 * 1024;
+export const MAX_EXTRACTED_BYTES = 1024 * 1024 * 1024;
+
+const MB = (bytes: number) => `${Math.round(bytes / (1024 * 1024))} MB`;
 
 // Streams the archive straight into the directory without holding it in
 // memory. The archive's single top-level folder is stripped so the
@@ -83,7 +84,25 @@ export async function resolveCommit({ owner, name }: Repository): Promise<string
 export async function downloadArchive({ owner, name }: Repository, sha: string, directory: string): Promise<void> {
   const response = await fetch(`https://codeload.github.com/${owner}/${name}/tar.gz/${sha}`, { headers: HEADERS });
   if (!response.ok || !response.body) throw await failure(response, "downloading the archive");
-  await pipeline(chunks(response.body), extract({ cwd: directory, strip: 1 }));
+  let extracted = 0;
+  let overflow = false;
+  await pipeline(
+    chunks(response.body, MAX_ARCHIVE_BYTES),
+    extract({
+      cwd: directory,
+      strip: 1,
+      // Once over the limit nothing more is written; the rest of the stream
+      // is only read, and the run fails below.
+      filter: (_, entry) => {
+        extracted += entry.size;
+        if (extracted > MAX_EXTRACTED_BYTES) overflow = true;
+        return !overflow;
+      },
+    }),
+  );
+  if (overflow) {
+    throw new Error(`The repository unpacks to more than ${MB(MAX_EXTRACTED_BYTES)}, larger than Cartograph maps.`);
+  }
 }
 
 // One file's bytes at an exact commit, or null when it isn't there. Raw
@@ -98,12 +117,19 @@ export async function fetchFile({ owner, name }: Repository, sha: string, file: 
 }
 
 // fetch's body is the DOM stream type, which Node's stream helpers don't
-// accept by type; a generator bridges it without a cast.
-async function* chunks(body: ReadableStream<Uint8Array>): AsyncGenerator<Uint8Array> {
+// accept by type; a generator bridges it without a cast. Stops the download
+// once it passes `limit` bytes.
+async function* chunks(body: ReadableStream<Uint8Array>, limit: number): AsyncGenerator<Uint8Array> {
   const reader = body.getReader();
+  let received = 0;
   for (;;) {
     const { done, value } = await reader.read();
     if (done) return;
+    received += value.length;
+    if (received > limit) {
+      await reader.cancel();
+      throw new Error(`The repository's archive is over ${MB(limit)} compressed, larger than Cartograph maps.`);
+    }
     yield value;
   }
 }

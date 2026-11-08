@@ -11,10 +11,11 @@ export type Freshness =
   | { state: "unknown"; message: string };
 
 // Clicking through several files asks the same question of the same
-// repository each time, and each answer spends two of the sixty
-// unauthenticated API requests an hour a run also needs. Short enough that a
-// push followed by a reload is seen.
-const HEAD_FOR_MS = 15_000;
+// repository each time, and each answer spends one of the sixty
+// unauthenticated API requests an hour a run also needs. Five minutes caps
+// browsing at twelve an hour per repository, leaving the rest for runs; a
+// push takes up to that long to show as moved.
+const HEAD_FOR_MS = 5 * 60 * 1000;
 const heads = new Map<string, { sha: string; at: number }>();
 
 async function headOf(repository: Repository): Promise<string> {
@@ -34,12 +35,13 @@ export async function checkFreshness(analysisId: string, path: string): Promise<
     const found = await getAnalysis(analysisId);
     if (!found.ok) return { state: "unknown", message: found.message };
     const analysis = found.analysis;
-    if (!analysis?.commitSha) return { state: "unknown", message: "This analysis has no recorded commit." };
+    if (!analysis?.commitSha || !analysis.mapRun) return { state: "unknown", message: "This analysis has no stored map." };
 
     const { data, error } = await getSupabase()
       .from("files")
       .select("sha256")
       .eq("analysis_id", analysis.id)
+      .eq("run", analysis.mapRun)
       .eq("path", path)
       .maybeSingle();
     if (error) return { state: "unknown", message: `Reading the file failed: ${error.message}` };

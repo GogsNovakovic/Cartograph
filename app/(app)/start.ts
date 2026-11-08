@@ -27,7 +27,10 @@ export async function analyse(url: unknown): Promise<Started> {
 
   if (typeof url !== "string" || url.trim() === "") return { ok: false, message: "Paste a repository URL." };
 
-  const started = await startAnalysis(organization.id, url);
+  const started = await startAnalysis(
+    { id: organization.id, name: organization.name ?? organization.slug ?? organization.id },
+    url,
+  );
   if (!started.ok) return { ok: false, message: started.message };
 
   // An analysed repository goes to its existing analysis. Running it again

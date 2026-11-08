@@ -122,7 +122,9 @@ export async function askRoles(
 // model calls only for the misses. A re-run of an unchanged repository is a
 // recorded run with no model call in it.
 export const classifyFiles = traceable(
-  async (files: readonly Unclassified[], store: CacheStore): Promise<Classified> => {
+  // `afterBatch` runs once each set of calls has answered; a run uses it to
+  // say it is still alive through a long classification.
+  async (files: readonly Unclassified[], store: CacheStore, afterBatch: () => Promise<void>): Promise<Classified> => {
     const { found } = await readCache(store, files.map(keyOf));
     const answers = new Map<string, SuggestedRole | null>();
     const misses: Unclassified[] = [];
@@ -148,6 +150,7 @@ export const classifyFiles = traceable(
         }
       }
       await store.write(rows);
+      await afterBatch();
     }
 
     const result: Classified = { suggested: [], none: [], unanswered: [] };

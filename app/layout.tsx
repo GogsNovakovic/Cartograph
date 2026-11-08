@@ -40,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           signUpUrl={SIGN_UP_PATH}
           signInFallbackRedirectUrl={HOME_PATH}
           signUpFallbackRedirectUrl={HOME_PATH}
-          afterSignOutUrl={SIGN_IN_PATH}
+          afterSignOutUrl={HOME_PATH}
           appearance={{
             cssLayerName: "clerk",
             // CSS variables, so Clerk follows the theme control with no

@@ -62,7 +62,7 @@ export function join(dir: string, written: string): string {
 
 export function readText(root: string, file: string): string | null {
   try {
-    return readFileSync(path.join(root, file), "utf8");
+    return readFileSync(/*turbopackIgnore: true*/ path.join(root, file), "utf8");
   } catch {
     return null;
   }

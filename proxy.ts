@@ -29,10 +29,13 @@ export default clerkMiddleware(
   { signInUrl: SIGN_IN_PATH, signUpUrl: SIGN_UP_PATH },
 );
 
+// The agent's lookups under /api/agent never pass through here. They carry
+// their own credential, not a Clerk session, and Clerk would try to verify it
+// as one. The route refuses anything without a valid credential itself.
 export const config = {
   matcher: [
-    // Skip Next internals and static files
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
+    // Skip Next internals, the agent's lookups and static files
+    "/((?!_next|api/agent(?:/|$)|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api(?!/agent(?:/|$))|trpc)(.*)",
   ],
 };

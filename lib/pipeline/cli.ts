@@ -48,7 +48,8 @@ async function main(args: string[]): Promise<number> {
   const url = args.find((arg, i) => !arg.startsWith("--") && args[i - 1] !== "--org");
   if (!organizationId || !url) return usage();
 
-  const started = await startAnalysis(organizationId, url);
+  // No session here to read a name from; the id stands in for a new row.
+  const started = await startAnalysis({ id: organizationId, name: organizationId }, url);
   if (!started.ok) {
     console.error(started.message);
     return 1;

@@ -18,27 +18,42 @@ async function inChunks<T>(table: string, rows: T[], insert: (chunk: T[]) => Pro
   }
 }
 
-// Removes whatever an earlier or interrupted run stored. Edges, roles,
-// routes and explanations hang off files and go with them.
-export async function clearResult(db: Writer, analysisId: string): Promise<void> {
-  const { error } = await db.from("files").delete().eq("analysis_id", analysisId);
-  if (error) throw new Error(`Clearing earlier rows failed: ${error.message}`);
+// Edges, roles and routes hang off files, so removing a run's files
+// removes the run.
+
+// Every run's rows but `keep`'s: before a run, whatever a crashed one left
+// behind; after a swap, the map it replaced. Null keeps nothing.
+export async function clearOtherRuns(db: Writer, analysisId: string, keep: string | null): Promise<void> {
+  let query = db.from("files").delete().eq("analysis_id", analysisId);
+  if (keep !== null) query = query.neq("run", keep);
+  const { error } = await query;
+  if (error) throw new Error(`Clearing earlier runs' rows failed: ${error.message}`);
 }
+
+// One run's rows, when it failed before the analysis pointed at them.
+export async function clearRun(db: Writer, analysisId: string, run: string): Promise<void> {
+  const { error } = await db.from("files").delete().eq("analysis_id", analysisId).eq("run", run);
+  if (error) throw new Error(`Clearing this run's rows failed: ${error.message}`);
+}
+
+// Which analysis and organization a run's rows belong to, and which run.
+export type Owner = { analysisId: string; organizationId: string; run: string };
 
 export type Stored = { files: number; edges: number; roles: number; routes: number };
 
 // Each stored file's row id by path, for rows added after the result.
 export type FileIds = ReadonlyMap<string, string>;
 
-// Files, edges, convention roles and routes become rows. Ids are made here rather
+// Files, edges, convention roles and routes become rows of this run, beside
+// whatever map the analysis already has. Ids are made here rather
 // than returned by the inserts, so edges can name their files without a
 // round trip per chunk.
 export async function storeResult(
   db: Writer,
-  { analysisId, organizationId }: { analysisId: string; organizationId: string },
+  { analysisId, organizationId, run }: Owner,
   result: ParseResult,
 ): Promise<{ stored: Stored; ids: FileIds }> {
-  const owner = { analysis_id: analysisId, organization_id: organizationId };
+  const owner = { analysis_id: analysisId, organization_id: organizationId, run };
   const ids = new Map(result.files.map((file) => [file.path, randomUUID()]));
   const idOf = (path: string): string => {
     const id = ids.get(path);
@@ -106,7 +121,7 @@ export async function storeResult(
 // model's, so nothing reads one as what a framework reaches the file as.
 export async function storeSuggestedRoles(
   db: Writer,
-  { analysisId, organizationId }: { analysisId: string; organizationId: string },
+  { analysisId, organizationId, run }: Owner,
   ids: ReadonlyMap<string, string>,
   suggested: ReadonlyArray<{ path: string; role: string }>,
 ): Promise<void> {
@@ -115,7 +130,7 @@ export async function storeSuggestedRoles(
     suggested.map(({ path, role }) => {
       const id = ids.get(path);
       if (!id) throw new Error(`A role was suggested for ${path}, which isn't among the stored files.`);
-      return { analysis_id: analysisId, organization_id: organizationId, file_id: id, role, entry: false, source: "model" };
+      return { analysis_id: analysisId, organization_id: organizationId, run, file_id: id, role, entry: false, source: "model" };
     }),
     (chunk) => db.from("file_roles").insert(chunk),
   );

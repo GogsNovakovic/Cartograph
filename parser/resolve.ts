@@ -92,7 +92,7 @@ export class Resolver {
 
     // A bare specifier that baseUrl would have reached if the file existed:
     // its first segment names something under baseUrl.
-    if (options.baseUrl && existsSync(path.join(options.baseUrl, specifier.split("/")[0]))) {
+    if (options.baseUrl && existsSync(/*turbopackIgnore: true*/ path.join(options.baseUrl, specifier.split("/")[0]))) {
       return {
         outcome: "unresolved",
         reason: "base-url-without-target",
@@ -239,7 +239,9 @@ export class Resolver {
     if (cached !== undefined) return cached;
     let found: string | null = null;
     for (const name of ["tsconfig.json", "jsconfig.json"]) {
-      const candidate = path.join(dir, name);
+      // A path in the analysed repository, known only at run time: there is
+      // nothing here for the build to trace.
+      const candidate = path.join(/*turbopackIgnore: true*/ dir, name);
       if (existsSync(candidate)) {
         found = candidate;
         break;

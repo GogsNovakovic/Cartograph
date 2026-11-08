@@ -41,10 +41,11 @@ export function readProgress(payload: Record<string, unknown>): Progress | null 
 }
 
 // Nothing here has a queue or a timeout, so a process that dies mid-run
-// leaves its row unfinished forever. Past this age an unfinished run is taken
-// to be abandoned: shown as stale, and allowed to be run again.
+// leaves its row unfinished forever. An unfinished run that hasn't reported
+// in for this long is taken to be abandoned: shown as stale, and allowed to
+// be run again.
 export const STALE_AFTER_MS = 5 * 60 * 1000;
 
-export function isStale(status: Status, startedAt: string, now: number): boolean {
-  return (status === "queued" || status === "parsing") && now - Date.parse(startedAt) > STALE_AFTER_MS;
+export function isStale(status: Status, heartbeatAt: string, now: number): boolean {
+  return (status === "queued" || status === "parsing") && now - Date.parse(heartbeatAt) > STALE_AFTER_MS;
 }

@@ -5,16 +5,20 @@ import { RerunButton } from "@/components/analyse-form";
 import { AnalysisProgress } from "@/components/analysis-progress";
 import { AnalysisView } from "@/components/analysis-view";
 import { CoverageBanner } from "@/components/coverage-banner";
+import { RerunProgress } from "@/components/rerun-progress";
 import { getAnalysis, type AnalysisSummary } from "@/lib/analyses";
 import { summariseCoverage } from "@/lib/map/coverage";
 import { findInsights } from "@/lib/map/graph";
 import { tracing } from "@/lib/env";
 import { buildMapModel } from "@/lib/map/model";
+import { STAGE_LABELS } from "@/lib/progress";
 import { HOME_PATH } from "@/lib/routes";
 import { readStoredResult } from "@/lib/stored-result";
+import { getSupabase } from "@/lib/supabase";
 
-// One address per analysis. While it runs, or if it failed, this is its
-// progress; once complete it is its map. The progress view re-reads the page
+// One address per analysis. Until it has a map, this is its progress or its
+// failure; once it has one it is its map, and a re-run (in progress, or
+// failed) is a line above the map rather than a replacement for it. The progress view re-reads the page
 // when the run ends, so finishing lands here on the map without a redirect.
 export default function AnalysisPage({ params }: PageProps<"/analyses/[id]">) {
   return (
@@ -37,7 +41,7 @@ function Page({ children }: { children: ReactNode }) {
 }
 
 async function AnalysisMap({ analysis }: { analysis: AnalysisSummary }) {
-  const stored = await readStoredResult(analysis.id, analysis.repository);
+  const stored = await readStoredResult(getSupabase(), analysis.id, analysis.repository);
   if (!stored.ok) {
     return (
       <Page>
@@ -54,6 +58,7 @@ async function AnalysisMap({ analysis }: { analysis: AnalysisSummary }) {
     );
   }
   const model = buildMapModel(stored.result, { roles: stored.suggested, failure: stored.classificationFailure });
+  const running = analysis.status === "queued" || analysis.status === "parsing";
   return (
     <>
       <CoverageBanner
@@ -61,8 +66,32 @@ async function AnalysisMap({ analysis }: { analysis: AnalysisSummary }) {
         repository={analysis.repository}
         commitSha={analysis.commitSha}
         coverage={summariseCoverage(stored.result.coverage, stored.result.files)}
+        canRerun={!running || analysis.stale}
+        notice={
+          running ? (
+            <RerunProgress
+              analysisId={analysis.id}
+              rendered={{ status: analysis.status, stage: analysis.stage, message: analysis.stageMessage }}
+              stale={analysis.stale}
+            />
+          ) : analysis.status === "failed" ? (
+            <p>
+              <span className="font-medium">
+                Running again failed{analysis.stage && ` while ${STAGE_LABELS[analysis.stage].toLowerCase()}`}:
+              </span>{" "}
+              {analysis.failureReason}{" "}
+              <span className="text-muted">
+                The map below is the previous run&apos;s, built from{" "}
+                <span className="font-mono">{analysis.commitSha?.slice(0, 7)}</span>.
+              </span>
+            </p>
+          ) : null
+        }
       />
+      {/* A new map is a new set of files: nothing selected or opened on the
+          old one carries over by index. */}
       <AnalysisView
+        key={analysis.mapRun}
         analysisId={analysis.id}
         model={model}
         insights={findInsights(model.files, model.links)}
@@ -90,7 +119,7 @@ async function Analysis({ params }: { params: PageProps<"/analyses/[id]">["param
   if (!result.analysis) notFound();
 
   const analysis = result.analysis;
-  if (analysis.status === "complete") return <AnalysisMap analysis={analysis} />;
+  if (analysis.mapRun !== null) return <AnalysisMap analysis={analysis} />;
 
   return (
     <Page>

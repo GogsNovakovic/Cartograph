@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { RerunButton } from "@/components/analyse-form";
 import type { CoverageSummary } from "@/lib/map/coverage";
 import { HOME_PATH } from "@/lib/routes";
@@ -18,17 +18,23 @@ const KIND_LABELS: Record<EdgeKind, string> = {
 // The strip above a finished map: which repository and commit it is, how
 // much of the import graph it shows, and running it again. When the graph is
 // partial the reasons open underneath; folded, the line still names the
-// figure, so a partial map can never pass for a complete one.
+// figure, so a partial map can never pass for a complete one. `notice` is a
+// re-run in progress or one that failed, said under the line; running again
+// isn't offered while a run is live.
 export function CoverageBanner({
   analysisId,
   repository,
   commitSha,
   coverage,
+  notice,
+  canRerun,
 }: {
   analysisId: string;
   repository: { owner: string; name: string };
   commitSha: string | null;
   coverage: CoverageSummary;
+  notice: ReactNode;
+  canRerun: boolean;
 }) {
   const [open, setOpen] = useState(coverage.partial);
   const unresolved = coverage.aimed - coverage.resolved;
@@ -92,8 +98,9 @@ export function CoverageBanner({
           </button>
         )}
         <span className="flex-1" />
-        <RerunButton analysisId={analysisId} />
+        {canRerun && <RerunButton analysisId={analysisId} />}
       </div>
+      {notice && <div className="border-t border-border px-3 py-1.5">{notice}</div>}
       {open && coverage.partial && (
         <div className="max-h-[220px] overflow-y-auto border-t border-border bg-raised px-3 py-2">
           {coverage.missing.map((group) => (

@@ -25,9 +25,11 @@ export type Database = {
           excluded_directories: Json | null
           failure_reason: string | null
           framework: string | null
+          heartbeat_at: string | null
           id: string
           organization_id: string
           project_id: string
+          result_run: string | null
           schema_version: number | null
           stage: Database["public"]["Enums"]["analysis_stage"] | null
           stage_message: string | null
@@ -44,9 +46,11 @@ export type Database = {
           excluded_directories?: Json | null
           failure_reason?: string | null
           framework?: string | null
+          heartbeat_at?: string | null
           id?: string
           organization_id: string
           project_id: string
+          result_run?: string | null
           schema_version?: number | null
           stage?: Database["public"]["Enums"]["analysis_stage"] | null
           stage_message?: string | null
@@ -63,9 +67,11 @@ export type Database = {
           excluded_directories?: Json | null
           failure_reason?: string | null
           framework?: string | null
+          heartbeat_at?: string | null
           id?: string
           organization_id?: string
           project_id?: string
+          result_run?: string | null
           schema_version?: number | null
           stage?: Database["public"]["Enums"]["analysis_stage"] | null
           stage_message?: string | null
@@ -96,6 +102,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["edge_kind"]
           line: number
           organization_id: string
+          run: string
           source_file_id: string
           specifier: string
           target_file_id: string
@@ -107,6 +114,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["edge_kind"]
           line: number
           organization_id: string
+          run: string
           source_file_id: string
           specifier: string
           target_file_id: string
@@ -118,6 +126,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["edge_kind"]
           line?: number
           organization_id?: string
+          run?: string
           source_file_id?: string
           specifier?: string
           target_file_id?: string
@@ -146,11 +155,25 @@ export type Database = {
             referencedColumns: ["id", "analysis_id", "organization_id"]
           },
           {
+            foreignKeyName: "edges_source_file_id_run_fkey"
+            columns: ["source_file_id", "run"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id", "run"]
+          },
+          {
             foreignKeyName: "edges_target_file_id_analysis_id_organization_id_fkey"
             columns: ["target_file_id", "analysis_id", "organization_id"]
             isOneToOne: false
             referencedRelation: "files"
             referencedColumns: ["id", "analysis_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "edges_target_file_id_run_fkey"
+            columns: ["target_file_id", "run"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id", "run"]
           },
         ]
       }
@@ -162,6 +185,7 @@ export type Database = {
           id: string
           organization_id: string
           role: string
+          run: string
           source: Database["public"]["Enums"]["file_role_source"]
         }
         Insert: {
@@ -171,6 +195,7 @@ export type Database = {
           id?: string
           organization_id: string
           role: string
+          run: string
           source: Database["public"]["Enums"]["file_role_source"]
         }
         Update: {
@@ -180,6 +205,7 @@ export type Database = {
           id?: string
           organization_id?: string
           role?: string
+          run?: string
           source?: Database["public"]["Enums"]["file_role_source"]
         }
         Relationships: [
@@ -196,6 +222,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "files"
             referencedColumns: ["id", "analysis_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "file_roles_file_id_run_fkey"
+            columns: ["file_id", "run"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id", "run"]
           },
           {
             foreignKeyName: "file_roles_organization_id_fkey"
@@ -218,6 +251,7 @@ export type Database = {
           lines: number | null
           organization_id: string
           path: string
+          run: string
           sha256: string | null
           skip_reason: string | null
         }
@@ -232,6 +266,7 @@ export type Database = {
           lines?: number | null
           organization_id: string
           path: string
+          run: string
           sha256?: string | null
           skip_reason?: string | null
         }
@@ -246,6 +281,7 @@ export type Database = {
           lines?: number | null
           organization_id?: string
           path?: string
+          run?: string
           sha256?: string | null
           skip_reason?: string | null
         }
@@ -399,6 +435,7 @@ export type Database = {
           method: string
           organization_id: string
           path: string
+          run: string
         }
         Insert: {
           analysis_id: string
@@ -408,6 +445,7 @@ export type Database = {
           method: string
           organization_id: string
           path: string
+          run: string
         }
         Update: {
           analysis_id?: string
@@ -417,6 +455,7 @@ export type Database = {
           method?: string
           organization_id?: string
           path?: string
+          run?: string
         }
         Relationships: [
           {
@@ -432,6 +471,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "files"
             referencedColumns: ["id", "analysis_id", "organization_id"]
+          },
+          {
+            foreignKeyName: "routes_file_id_run_fkey"
+            columns: ["file_id", "run"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id", "run"]
           },
           {
             foreignKeyName: "routes_organization_id_fkey"

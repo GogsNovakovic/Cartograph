@@ -11,9 +11,12 @@
     "db:types": "supabase gen types typescript --linked --schema public > lib/database.types.ts",
     "parse": "node parser/cli.ts",
     "analyse": "node --import ./lib/load-env.ts --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON lib/pipeline/cli.ts",
+    "agent:credential": "node --import ./lib/load-env.ts --disable-warning=MODULE_TYPELESS_PACKAGE_JSON lib/agent/cli.ts",
     "eval:paths": "node --import ./lib/load-env.ts --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON evals/invented-paths.ts",
     "eval:roles": "node --import ./lib/load-env.ts --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON evals/roles.ts",
-    "eval:prompts": "node --import ./lib/load-env.ts --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON evals/prompts.ts"
+    "eval:prompts": "node --import ./lib/load-env.ts --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON evals/prompts.ts",
+    "qa": "playwright test",
+    "qa:login": "node e2e/login.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.17",
@@ -29,6 +32,7 @@
     "ts-morph": "^28.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
